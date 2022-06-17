@@ -46,7 +46,7 @@
         _placeholderFontSize = [placeholderFontSize floatValue];
     }
     if (args[@"placeholderFontName"] && ![args[@"placeholderFontName"] isKindOfClass:[NSNull class]]) {
-        _placeholderFontFamily = args[@"placeholderFontName"];
+        _placeholderFontName = args[@"placeholderFontName"];
     }
     if (args[@"placeholderFontWeight"] && ![args[@"placeholderFontWeight"] isKindOfClass:[NSNull class]]) {
         _placeholderFontWeight = [self fontWeightFromString:args[@"placeholderFontWeight"]];
@@ -83,7 +83,7 @@
     if (_placeholderFontName) {
         return [UIFont fontWithName:_placeholderFontName size:_placeholderFontSize];
     } else {
-        return [UIFont systemFontOfSize:_placeholderFontName weight:_placeholderFontWeight];
+        return [UIFont systemFontOfSize:_placeholderFontSize weight:_placeholderFontWeight];
     }
 }
 
@@ -124,6 +124,10 @@
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
+    textView.scrollEnabled = true;
+    CGFloat numberOfLinesNeeded = ceil(textView.contentSize.height / textView.font.lineHeight);
+    CGFloat numberOfLinesInTextView = ceil(textView.frame.size.height / textView.font.lineHeight);
+    textView.scrollEnabled = numberOfLinesNeeded > numberOfLinesInTextView;
     [_channel invokeMethod:@"inputValueChanged" arguments:@{ @"text": textView.text }];
 }
 
