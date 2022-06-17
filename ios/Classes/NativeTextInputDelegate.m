@@ -114,6 +114,10 @@
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
+    textView.scrollEnabled = true;
+    CGFloat numberOfLinesNeeded = ceil(textView.contentSize.height / textView.font.lineHeight);
+    CGFloat numberOfLinesInTextView = ceil(textView.frame.size.height / textView.font.lineHeight);
+    textView.scrollEnabled = numberOfLinesNeeded > numberOfLinesInTextView;
     textView.textColor = textView.text == 0 ? _placeholderFontColor : _fontColor;
     textView.font = textView.text == 0 ? self.placeholderFont : self.font;
     
