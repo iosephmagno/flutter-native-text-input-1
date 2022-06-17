@@ -1,7 +1,6 @@
 ## 2.4.0
 
 * support custom font families on iOS
-* fix Android compilation with Flutter 3
 
 ## 2.3.0
 

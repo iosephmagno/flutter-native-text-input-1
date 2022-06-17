@@ -182,8 +182,6 @@ class NativeTextInput extends StatefulWidget {
   /// The style to use for the text being edited [Only `fontSize`, `fontWeight`, `color` are supported]
   /// (https://api.flutter.dev/flutter/material/TextField/style.html)
   ///
-  /// See also: `fontName` in [IosOptions].
-  ///
   /// Default: null
   final TextStyle? style;
 
@@ -246,17 +244,6 @@ class IosOptions {
   /// Default: null
   final Color? cursorColor;
 
-  /// Name of the font to use for the text, e.g. 'Noteworthy'.
-  ///
-  /// If this is set, the weight information in `style` is not
-  /// used.
-  ///
-  /// See also:
-  /// [placeholderFontName]
-  ///
-  /// Default: null
-  final String? fontName;
-
   /// The appearance of the keyboard
   /// (https://api.flutter.dev/flutter/material/TextField/keyboardAppearance.html)
   ///
@@ -266,32 +253,14 @@ class IosOptions {
   /// The style to use for the placeholder text. [Only `fontSize`, `fontWeight` are supported]
   /// (https://api.flutter.dev/flutter/cupertino/CupertinoTextField/placeholderStyle.html)
   ///
-  /// See also:
-  /// [fontName]
-  /// [placeholderFontName]
-  ///
   /// Default: null
   final TextStyle? placeholderStyle;
-
-  /// Name of the font to use for the placeholder text, e.g. 'Noteworthy'.
-  ///
-  /// If this is set, the weight information is in [placeholderStyle] is not
-  /// used.
-  ///
-  /// See also:
-  /// [fontName]
-  /// [placeholderStyle]
-  ///
-  /// Default: null
-  final String? placeholderFontName;
 
   IosOptions({
     this.autocorrect,
     this.cursorColor,
     this.keyboardAppearance,
     this.placeholderStyle,
-    this.fontName,
-    this.placeholderFontName,
   });
 }
 
@@ -471,10 +440,10 @@ class _NativeTextInputState extends State<NativeTextInput> {
       };
     }
 
-    if (widget.style != null && widget.iosOptions?.fontName != null) {
+    if (widget.style != null && widget.style?.fontFamily != null) {
       params = {
         ...params,
-        "fontName": widget.iosOptions?.fontName.toString(),
+        "fontFamily": widget.style?.fontFamily.toString(),
       };
     }
 
@@ -507,10 +476,11 @@ class _NativeTextInputState extends State<NativeTextInput> {
       };
     }
 
-    if (widget.iosOptions?.placeholderFontName != null) {
+    if (widget.iosOptions?.placeholderStyle != null &&
+        widget.iosOptions?.placeholderStyle?.fontFamily != null) {
       params = {
         ...params,
-        "placeholderFontName":
+        "placeholderFontFamily":
         widget.iosOptions?.placeholderStyle?.fontFamily.toString(),
       };
     }
