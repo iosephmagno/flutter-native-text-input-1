@@ -113,6 +113,7 @@ class NativeTextInput extends StatefulWidget {
     this.onChanged,
     this.onEditingComplete,
     this.onSubmitted,
+    this.onTap,
   }) : super(key: key);
 
   /// Controlling the text being edited
@@ -220,6 +221,13 @@ class NativeTextInput extends StatefulWidget {
   /// Default: null
   final ValueChanged<String?>? onSubmitted;
 
+  /// Called when the user taps the field.
+  ///
+  /// Not implemented yet on Android.
+  ///
+  /// Default: null
+  final VoidCallback? onTap;
+
   @override
   State<StatefulWidget> createState() => _NativeTextInputState();
 }
@@ -263,7 +271,9 @@ class _NativeTextInputState extends State<NativeTextInput> {
   TextEditingController get _effectiveController =>
       widget.controller ?? (_controller ??= TextEditingController());
 
-  FocusNode get _effectiveFocusNode => widget.focusNode ?? FocusNode();
+  FocusNode? _focusNode;
+  FocusNode get _effectiveFocusNode =>
+      widget.focusNode ?? (_focusNode ??= FocusNode());
 
   bool get _isMultiline => widget.maxLines == 0 || widget.maxLines > 1;
   double _lineHeight = 22.0;
@@ -273,29 +283,41 @@ class _NativeTextInputState extends State<NativeTextInput> {
   void initState() {
     super.initState();
 
-    _effectiveFocusNode.addListener(() async {
-      MethodChannel channel = await _channel.future;
-      if (mounted) {
-        channel.invokeMethod(
-            _effectiveFocusNode.hasFocus ? "focus" : "unfocus");
+    _effectiveFocusNode.addListener(_focusNodeListener);
+    widget.controller?.addListener(_controllerListener);
+  }
+
+  @override
+  void dispose() {
+    _effectiveFocusNode.removeListener(_focusNodeListener);
+    widget.controller?.removeListener(_controllerListener);
+
+    _controller?.dispose();
+    _focusNode?.dispose();
+
+    super.dispose();
+  }
+
+  Future<void> _focusNodeListener() async {
+    final MethodChannel channel = await _channel.future;
+    if (mounted) {
+      channel.invokeMethod(_effectiveFocusNode.hasFocus ? "focus" : "unfocus");
+    }
+  }
+
+  Future<void> _controllerListener() async {
+    final MethodChannel channel = await _channel.future;
+    channel.invokeMethod(
+      "setText",
+      {"text": widget.controller?.text ?? ''},
+    );
+    channel.invokeMethod("getContentHeight").then((value) {
+      if (value != null && value != _contentHeight) {
+        setState(() {
+          _contentHeight = value;
+        });
       }
     });
-
-    if (widget.controller != null) {
-      widget.controller!.addListener(() async {
-        MethodChannel channel = await _channel.future;
-        channel.invokeMethod(
-          "setText",
-          {"text": widget.controller?.text ?? ''},
-        );
-        channel.invokeMethod("getContentHeight").then((value) {
-          if (value != null && value != _contentHeight) {
-            _contentHeight = value;
-            setState(() {});
-          }
-        });
-      });
-    }
   }
 
   Widget _platformView(BoxConstraints layout) {
@@ -356,7 +378,7 @@ class _NativeTextInputState extends State<NativeTextInput> {
     return ConstrainedBox(
       constraints: BoxConstraints(
         minHeight: _minHeight,
-        maxHeight: _maxHeight,
+        maxHeight: _maxHeight > _minHeight ? _maxHeight : _minHeight,
       ),
       child: LayoutBuilder(
         builder: (context, layout) => Container(
@@ -368,18 +390,21 @@ class _NativeTextInputState extends State<NativeTextInput> {
   }
 
   void _createMethodChannel(int nativeViewId) {
-    MethodChannel channel = MethodChannel("flutter_native_text_input$nativeViewId")
-      ..setMethodCallHandler(_onMethodCall);
+    MethodChannel channel =
+        MethodChannel("flutter_native_text_input$nativeViewId")
+          ..setMethodCallHandler(_onMethodCall);
     channel.invokeMethod("getLineHeight").then((value) {
       if (value != null) {
-        _lineHeight = value;
-        setState(() {});
+        setState(() {
+          _lineHeight = value;
+        });
       }
     });
     channel.invokeMethod("getContentHeight").then((value) {
       if (value != null) {
-        _contentHeight = value;
-        setState(() {});
+        setState(() {
+          _contentHeight = value;
+        });
       }
     });
     _channel.complete(channel);
@@ -415,6 +440,13 @@ class _NativeTextInputState extends State<NativeTextInput> {
       };
     }
 
+    if (widget.style != null && widget.style?.fontFamily != null) {
+      params = {
+        ...params,
+        "fontFamily": widget.style?.fontFamily.toString(),
+      };
+    }
+
     if (widget.style != null && widget.style?.color != null) {
       params = {
         ...params,
@@ -443,6 +475,16 @@ class _NativeTextInputState extends State<NativeTextInput> {
             widget.iosOptions?.placeholderStyle?.fontWeight.toString(),
       };
     }
+
+    if (widget.iosOptions?.placeholderStyle != null &&
+        widget.iosOptions?.placeholderStyle?.fontFamily != null) {
+      params = {
+        ...params,
+        "placeholderFontFamily":
+        widget.iosOptions?.placeholderStyle?.fontFamily.toString(),
+      };
+    }
+
     if (widget.placeholderColor != null) {
       params = {
         ...params,
@@ -474,6 +516,13 @@ class _NativeTextInputState extends State<NativeTextInput> {
       };
     }
 
+    if (widget.onTap != null) {
+      params = {
+        ...params,
+        "onTap": true,
+      };
+    }
+
     return params;
   }
 
@@ -493,6 +542,9 @@ class _NativeTextInputState extends State<NativeTextInput> {
         final String? text = call.arguments["text"];
         _inputFinished(text);
         return null;
+
+      case "singleTapRecognized":
+        _singleTapRecognized();
     }
 
     throw MissingPluginException(
@@ -550,6 +602,8 @@ class _NativeTextInputState extends State<NativeTextInput> {
       }
     }
   }
+
+  void _singleTapRecognized() => widget.onTap?.call();
 
   static const Duration _caretAnimationDuration = Duration(milliseconds: 100);
   static const Curve _caretAnimationCurve = Curves.fastOutSlowIn;

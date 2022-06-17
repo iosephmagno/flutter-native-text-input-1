@@ -5,10 +5,12 @@
     id _Nullable _args;
     
     float _fontSize;
+    NSString *_fontFamily;
     UIFontWeight _fontWeight;
     UIColor* _fontColor;
     
     float _placeholderFontSize;
+    NSString *_placeholderFontFamily;
     UIFontWeight _placeholderFontWeight;
     UIColor* _placeholderFontColor;
 }
@@ -29,6 +31,9 @@
         _fontSize = [fontSize floatValue];
         _placeholderFontSize = _fontSize;
     }
+    if (args[@"fontFamily"] && ![args[@"fontFamily"] isKindOfClass:[NSNull class]]) {
+        _fontFamily = args[@"fontFamily"];
+    }
     if (args[@"fontWeight"] && ![args[@"fontWeight"] isKindOfClass:[NSNull class]]) {
         _fontWeight = [self fontWeightFromString:args[@"fontWeight"]];
     }
@@ -39,6 +44,9 @@
     if (args[@"placeholderFontSize"] && ![args[@"placeholderFontSize"] isKindOfClass:[NSNull class]]) {
         NSNumber* placeholderFontSize = args[@"placeholderFontSize"];
         _placeholderFontSize = [placeholderFontSize floatValue];
+    }
+    if (args[@"placeholderFontFamily"] && ![args[@"placeholderFontFamily"] isKindOfClass:[NSNull class]]) {
+        _placeholderFontFamily = args[@"placeholderFontFamily"];
     }
     if (args[@"placeholderFontWeight"] && ![args[@"placeholderFontWeight"] isKindOfClass:[NSNull class]]) {
         _placeholderFontWeight = [self fontWeightFromString:args[@"placeholderFontWeight"]];
@@ -60,7 +68,11 @@
 }
 
 - (UIFont *)font {
-    return [UIFont systemFontOfSize:_fontSize weight:_fontWeight];
+    if (_fontFamily) {
+        return [UIFont fontWithName:_fontFamily size:_fontSize];
+    } else {
+        return [UIFont systemFontOfSize:_fontSize weight:_fontWeight];
+    }
 }
 
 - (UIColor *)placeholderFontColor {
@@ -68,7 +80,11 @@
 }
 
 - (UIFont *)placeholderFont {
-    return [UIFont systemFontOfSize:_placeholderFontSize weight:_placeholderFontWeight];
+    if (_placeholderFontFamily) {
+        return [UIFont fontWithName:_placeholderFontFamily size:_placeholderFontSize];
+    } else {
+        return [UIFont systemFontOfSize:_placeholderFontSize weight:_placeholderFontWeight];
+    }
 }
 
 - (UIFontWeight)fontWeightFromString:(NSString*)fontWeight {
@@ -99,12 +115,6 @@
 }
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
-    if ([textView.text isEqualToString:_args[@"placeholder"]]) {
-        textView.text = @"";
-        textView.textColor = _fontColor;
-        textView.font = self.font;
-    }
-    
     if (textView.textContainer.maximumNumberOfLines == 1) {
         textView.textContainer.lineBreakMode = NSLineBreakByCharWrapping;
     }
@@ -114,23 +124,10 @@
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
-    textView.scrollEnabled = true;
-    CGFloat numberOfLinesNeeded = ceil(textView.contentSize.height / textView.font.lineHeight);
-    CGFloat numberOfLinesInTextView = ceil(textView.frame.size.height / textView.font.lineHeight);
-    textView.scrollEnabled = numberOfLinesNeeded > numberOfLinesInTextView;
-    textView.textColor = textView.text == 0 ? _placeholderFontColor : _fontColor;
-    textView.font = textView.text == 0 ? self.placeholderFont : self.font;
-    
     [_channel invokeMethod:@"inputValueChanged" arguments:@{ @"text": textView.text }];
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
-    if (textView.text.length == 0) {
-        textView.text = _args[@"placeholder"];
-        textView.textColor = _placeholderFontColor;
-        textView.font = self.placeholderFont;
-    }
-    
     if (textView.textContainer.maximumNumberOfLines == 1) {
         textView.textContainer.lineBreakMode = NSLineBreakByTruncatingTail;
     }
@@ -147,5 +144,15 @@
      }
      return true;
  }
+
+- (void)singleTapRecognized:(UIGestureRecognizer *)gestureRecognizer {
+     [_channel invokeMethod:@"singleTapRecognized" arguments:@{}];
+}
+
+#pragma mark - Gesture recognizer delegate
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    return YES;
+}
 
 @end

@@ -17,6 +17,10 @@ class _MoreUseCaseListingPageState extends State<MoreUseCaseListingPage> {
 
   _onChangeText(value) => debugPrint("_onChangeText: $value");
   _onSubmittedText(value) => debugPrint("_onSubmittedText: $value");
+  _onTap(BuildContext context) {
+    const snackBar = SnackBar(content: Text('Tapped!'));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +36,19 @@ class _MoreUseCaseListingPageState extends State<MoreUseCaseListingPage> {
                   child: NativeTextInput(
                     onChanged: _onChangeText,
                     onSubmitted: _onSubmittedText,
+                  )),
+              DemoItem(
+                  title: "Custom font",
+                  child: NativeTextInput(
+                    style: const TextStyle(
+                      fontFamily: 'Noteworthy',
+                    ),
+                    placeholder: 'Noteworthy',
+                    iosOptions: IosOptions(
+                      placeholderStyle: const TextStyle(
+                        fontFamily: 'Noteworthy',
+                      ),
+                    ),
                   )),
               DemoItem(
                   title: "Numeric Keyboard",
@@ -131,6 +148,12 @@ class _MoreUseCaseListingPageState extends State<MoreUseCaseListingPage> {
                       )
                     ],
                   )),
+              DemoItem(
+                  title: "Recognizing Tap",
+                  child: NativeTextInput(
+                    onTap: () => _onTap(context),
+                  ),
+              ),
               Padding(
                 padding: const EdgeInsets.all(100),
                 child: Center(
