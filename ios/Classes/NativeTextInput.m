@@ -84,6 +84,11 @@
 
         _containerWidth = [args[@"width"] floatValue];
         
+        if ([_textView.text  isEqual: @""]) {
+        _textView.scrollEnabled = false;
+        }
+        
+        
         __weak __typeof__(self) weakSelf = self;
         [_channel setMethodCallHandler:^(FlutterMethodCall* call, FlutterResult result) {
             [weakSelf onMethodCall:call result:result];

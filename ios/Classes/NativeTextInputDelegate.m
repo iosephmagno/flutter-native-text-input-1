@@ -60,6 +60,7 @@
         _channel = channel;
         _args = args;
     }
+    
     return self;
 }
 
