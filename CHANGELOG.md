@@ -1,7 +1,19 @@
+## 2.4.0
+
+* support custom font families on iOS
+* fix Android compilation with Flutter 3
+
+## 2.3.0
+
+* dispose `TextEditingController` and `FocusNode`, preventing memory leaks
+* support for detecting tap gestures on iOS
+
 ## 2.2.0
 
 * fix an iOS race condition that would cause errors when autofocusing
 * implement autocorrect for iOS
+* use `UITextView.attributedPlaceholder` to draw the iOS placeholder
+* ensure that `BoxConstraints` are valid
 
 ## 2.1.1
 
