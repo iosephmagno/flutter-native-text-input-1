@@ -124,6 +124,10 @@
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
+    textView.scrollEnabled = true;
+    CGFloat numberOfLinesNeeded = ceil(textView.contentSize.height / textView.font.lineHeight);
+    CGFloat numberOfLinesInTextView = ceil(textView.frame.size.height / textView.font.lineHeight);
+    textView.scrollEnabled = numberOfLinesNeeded > numberOfLinesInTextView;
     [_channel invokeMethod:@"inputValueChanged" arguments:@{ @"text": textView.text }];
 }
 
