@@ -24,6 +24,7 @@ class HomePage extends StatelessWidget {
   final FocusNode _focusNode = FocusNode();
 
   _onChangeText(value) => debugPrint("_onChangeText: $value");
+
   _onSubmittedText(value) => debugPrint("_onSubmittedText: $value");
 
   @override
@@ -32,89 +33,29 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Demo Page'),
       ),
-      body: ListView(
-        children: <Widget>[
+      body: Column(
+        children: [
+          Expanded(child: Center(child: Text("Body"))),
           DemoItem(
-            title: 'Flutter TextField Example Usage',
-            child: TextField(
-              onChanged: _onChangeText,
-              onSubmitted: _onSubmittedText,
-              autocorrect: true,
-              decoration: const InputDecoration(
-                hintText: 'placeholder',
-                border: InputBorder.none,
+            title: "Multiline Text Input",
+            child: NativeTextInput(
+              minHeightPadding: 14,
+              minLines: 1,
+              maxLines: 6,
+              keyboardType: KeyboardType.defaultType,
+              returnKeyType: ReturnKeyType.defaultAction,
+              iosOptions: IosOptions(
+                keyboardAppearance: Brightness.light,
               ),
-            ),
-          ),
-          DemoItem(
-            title: 'Flutter CupertinoTextField Example Usage',
-            child: CupertinoTextField(
-              autocorrect: true,
-              cursorColor: Colors.black87,
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.black87,
-                  width: 2,
-                ),
-              ),
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black54,
-              ),
+              placeholder: "S().message",
               textCapitalization: TextCapitalization.sentences,
-              placeholderStyle: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black12,
-              ),
-              placeholder: 'placeholder',
-              onChanged: _onChangeText,
-              onSubmitted: _onSubmittedText,
+              onChanged: (val) {
+                print("onChanged => $val");
+              },
+              onTap: () {
+                print("onTap");
+              },
             ),
-          ),
-          DemoItem(
-            title: 'NativeTextInput Example Usage',
-            child: Container(
-              height: 30,
-              child: NativeTextInput(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.black87,
-                    width: 2,
-                  ),
-                ),
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
-                minHeightPadding: 4,
-                textCapitalization: TextCapitalization.sentences,
-                placeholder: "placeholder",
-                placeholderColor: Colors.black12,
-                iosOptions: IosOptions(
-                  autocorrect: true,
-                  cursorColor: Colors.black87,
-                  keyboardAppearance: Brightness.dark,
-                  placeholderStyle: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                keyboardType: KeyboardType.defaultType,
-                onChanged: _onChangeText,
-                onSubmitted: _onSubmittedText,
-                focusNode: _focusNode,
-              ),
-            ),
-          ),
-          Center(
-            child: FlatButton(
-                color: Colors.blue,
-                colorBrightness: Brightness.dark,
-                child: const Text("View More Use Cases"),
-                onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => MoreUseCaseListingPage()));
-                }),
           ),
         ],
       ),
