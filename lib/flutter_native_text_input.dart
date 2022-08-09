@@ -620,16 +620,26 @@ class _NativeTextInputState extends State<NativeTextInput> {
   }
 
   void _inputValueChanged(String? text, int? lineIndex) async {
-    if (text != null) {
-      _effectiveController.text = text;
-      if (widget.onChanged != null) widget.onChanged!(text);
+    if (text == null) {
+      return;
+    }
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        _effectiveController.text = text;
+        break;
+      case TargetPlatform.iOS:
+        break;
+      default:
+        break;
+    }
+    if (widget.onChanged != null) widget.onChanged!(text);
 
-      final channel = await _channel.future;
-      final value = await channel.invokeMethod("getContentHeight");
-      if (mounted && value != null && value != _contentHeight) {
+    final channel = await _channel.future;
+    final value = await channel.invokeMethod("getContentHeight");
+    if (mounted && value != null && value != _contentHeight) {
+      setState(() {
         _contentHeight = value;
-        setState(() {});
-      }
+      });
     }
   }
 
