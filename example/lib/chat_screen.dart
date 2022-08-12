@@ -65,36 +65,40 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           const SizedBox(width: 9.0),
                           Expanded(
-                            child: NativeTextInput(
-                              style: TextStyle(
-                                letterSpacing: '-15@17'.va,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.black,
-                              ),
-                              minHeightPadding: 14,
-                              controller: _messageController,
-                              focusNode: _focusNode,
-                              minLines: 1,
-                              maxLines: 12,
-                              keyboardType: KeyboardType.defaultType,
-                              returnKeyType: ReturnKeyType.defaultAction,
-                              iosOptions: IosOptions(
-                                keyboardAppearance: Brightness.light,
-                                placeholderStyle: TextStyle(
+                            child: Padding(
+                              //assign padding to textfield 
+                              padding: const EdgeInsets.only(left:0, right:8),
+                              child: NativeTextInput(
+                                style: TextStyle(
                                   letterSpacing: '-15@17'.va,
                                   fontSize: 17,
                                   fontWeight: FontWeight.w400,
-                                  color: const Color(0xffA1A1A0),
+                                  color: Colors.black,
                                 ),
+                                minHeightPadding: 14,
+                                controller: _messageController,
+                                focusNode: _focusNode,
+                                minLines: 1,
+                                maxLines: 12,
+                                keyboardType: KeyboardType.defaultType,
+                                returnKeyType: ReturnKeyType.defaultAction,
+                                iosOptions: IosOptions(
+                                  keyboardAppearance: Brightness.light,
+                                  placeholderStyle: TextStyle(
+                                    letterSpacing: '-15@17'.va,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w400,
+                                    color: const Color(0xffA1A1A0),
+                                  ),
+                                ),
+                                placeholder: 'Message',
+                                textCapitalization: TextCapitalization.sentences,
+                                onChanged: (val) {
+                                  final isEmpty = val.trim().isEmpty;
+                                  _messageNotifier.value = isEmpty;
+                                },
+                                onTap: () {},
                               ),
-                              placeholder: 'Message',
-                              textCapitalization: TextCapitalization.sentences,
-                              onChanged: (val) {
-                                final isEmpty = val.trim().isEmpty;
-                                _messageNotifier.value = isEmpty;
-                              },
-                              onTap: () {},
                             ),
                           ),
                           ValueListenableBuilder<bool>(
