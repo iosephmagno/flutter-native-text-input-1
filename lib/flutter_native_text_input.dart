@@ -362,13 +362,17 @@ class _NativeTextInputState extends State<NativeTextInput> {
             gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{},
           ),
           onCreatePlatformView: (PlatformViewCreationParams params) {
-            return PlatformViewsService.initSurfaceAndroidView(
-              id: params.id,
-              viewType: NativeTextInput.viewType,
-              layoutDirection: TextDirection.ltr,
-              creationParams: _buildCreationParams(layout),
-              creationParamsCodec: const StandardMessageCodec(),
-            )
+            return PlatformViewsService.initAndroidView(
+                id: params.id,
+                viewType: NativeTextInput.viewType,
+                layoutDirection: TextDirection.ltr,
+                creationParams: _buildCreationParams(layout),
+                creationParamsCodec: const StandardMessageCodec(),
+                onFocus: () {
+                  if (!_effectiveFocusNode.hasFocus) {
+                    _effectiveFocusNode.requestFocus();
+                  }
+                })
               ..addOnPlatformViewCreatedListener((_) {
                 params.onPlatformViewCreated(_);
                 _createMethodChannel(_);
@@ -511,7 +515,7 @@ class _NativeTextInputState extends State<NativeTextInput> {
       params = {
         ...params,
         "placeholderFontName":
-        widget.iosOptions?.placeholderStyle?.fontFamily.toString(),
+            widget.iosOptions?.placeholderStyle?.fontFamily.toString(),
       };
     }
 
@@ -628,6 +632,7 @@ class _NativeTextInputState extends State<NativeTextInput> {
         _effectiveController.text = text;
         break;
       case TargetPlatform.iOS:
+        _effectiveController.text = text;
         break;
       default:
         break;
@@ -649,7 +654,7 @@ class _NativeTextInputState extends State<NativeTextInput> {
   static const Curve _caretAnimationCurve = Curves.fastOutSlowIn;
 
   void _scrollIntoView() {
-    SchedulerBinding.instance!.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       context.findRenderObject()!.showOnScreen(
             duration: _caretAnimationDuration,
             curve: _caretAnimationCurve,
