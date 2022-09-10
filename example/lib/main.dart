@@ -17,7 +17,10 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: HomePage());
+    return MaterialApp(
+      home: HomePage(),
+      theme: ThemeData(platform: TargetPlatform.android),
+    );
   }
 }
 
@@ -77,7 +80,7 @@ class HomePage extends StatelessWidget {
           ),
           DemoItem(
             title: 'NativeTextInput Example Usage',
-            child: Container(
+            child: SizedBox(
               height: 30,
               child: NativeTextInput(
                 decoration: BoxDecoration(
