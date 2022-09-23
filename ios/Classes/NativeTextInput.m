@@ -100,8 +100,7 @@
 - (void)onMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     if ([[call method] isEqualToString:@"getContentHeight"]) {
         CGSize boundSize = CGSizeMake(_textView.frame.size.width, MAXFLOAT);
-        if (_textView.frame.size.width > MAXFLOAT) {
-            printf("Calling........");
+        if (_textView.frame.size.width < MAXFLOAT) {
             CGSize size = [_textView sizeThatFits: boundSize];
             result([NSNumber numberWithFloat: size.height]);
         } else{

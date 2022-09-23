@@ -8,7 +8,7 @@
     NSString *_fontName;
     UIFontWeight _fontWeight;
     UIColor* _fontColor;
-    
+    NSString *_textChange;
     float _placeholderFontSize;
     NSString *_placeholderFontName;
     UIFontWeight _placeholderFontWeight;
@@ -17,15 +17,15 @@
 
 - (instancetype)initWithChannel:(FlutterMethodChannel*)channel arguments:(id _Nullable)args {
     self = [super init];
-    
+    _textChange = @"";
     _fontSize = 16.0;
     _fontWeight = UIFontWeightRegular;
     _fontColor = UIColor.blackColor;
-    
+
     _placeholderFontSize = 16.0;
     _placeholderFontWeight = UIFontWeightRegular;
     _placeholderFontColor = UIColor.lightGrayColor;
-    
+
     if (args[@"fontSize"] && ![args[@"fontSize"] isKindOfClass:[NSNull class]]) {
         NSNumber* fontSize = args[@"fontSize"];
         _fontSize = [fontSize floatValue];
@@ -55,12 +55,12 @@
         NSDictionary* placeholderFontColor = args[@"placeholderFontColor"];
         _placeholderFontColor = [UIColor colorWithRed:[placeholderFontColor[@"red"] floatValue]/255.0 green:[placeholderFontColor[@"green"] floatValue]/255.0 blue:[placeholderFontColor[@"blue"] floatValue]/255.0 alpha:[placeholderFontColor[@"alpha"] floatValue]/255.0];
     }
-    
+
     if (self) {
         _channel = channel;
         _args = args;
     }
-    
+
     return self;
 }
 
@@ -119,7 +119,7 @@
     if (textView.textContainer.maximumNumberOfLines == 1) {
         textView.textContainer.lineBreakMode = NSLineBreakByCharWrapping;
     }
-    
+
     [_channel invokeMethod:@"inputStarted"
                  arguments:nil];
 }
@@ -129,7 +129,7 @@
     CGFloat numberOfLinesNeeded = ceil(textView.contentSize.height / textView.font.lineHeight);
     CGFloat numberOfLinesInTextView = ceil(textView.frame.size.height / textView.font.lineHeight);
     textView.scrollEnabled = numberOfLinesNeeded > numberOfLinesInTextView;
-    [_channel invokeMethod:@"inputValueChanged" arguments:@{ @"text": textView.text }];
+    [_channel invokeMethod:@"inputValueChanged" arguments:@{ @"text": _textChange }];
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
@@ -143,13 +143,17 @@
       if([text hasPrefix:@"\n"]) {
           if ([text stringByReplacingOccurrencesOfString:@"\n" withString:@""].length>0) {
               newString = [text stringByReplacingOccurrencesOfString:@"\n" withString:@""];
-              textView.text = newString;
-          } else {
-              newString = text;
+              NSString* combinedString = [textView.text stringByAppendingString: newString];
+              newString = combinedString;
+              text =  newString;
+
+              textView.text = text;
+              _textChange = text;
+              NSLog(@"Updated Text ::::::::%@",text);
           }
       }
     if ((textView.returnKeyType != UIReturnKeyDefault ||
-         textView.textContainer.maximumNumberOfLines == 1) && [newString isEqualToString:@"\n"]) {
+         textView.textContainer.maximumNumberOfLines == 1) && [text isEqualToString:@"\n"]) {
          [_channel invokeMethod:@"inputFinished"
                       arguments:@{ @"text": textView.text }];
          return false;
