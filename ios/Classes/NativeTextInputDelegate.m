@@ -138,18 +138,11 @@
     }
 }
 
-  - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
-      NSString *newString;
-      if([text hasPrefix:@"\n"]) {
-          if ([text stringByReplacingOccurrencesOfString:@"\n" withString:@""].length>0) {
-              newString = [text stringByReplacingOccurrencesOfString:@"\n" withString:@""];
-              textView.text = newString;
-          } else {
-              newString = text;
-          }
-      }
-    if ((textView.returnKeyType != UIReturnKeyDefault ||
-         textView.textContainer.maximumNumberOfLines == 1) && [newString isEqualToString:@"\n"]) {
+ - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+     if ((textView.returnKeyType != UIReturnKeyDefault ||
+         textView.textContainer.maximumNumberOfLines == 1) &&
+         [text isEqualToString:@"\n"]
+     ) {
          [_channel invokeMethod:@"inputFinished"
                       arguments:@{ @"text": textView.text }];
          return false;
@@ -166,6 +159,5 @@
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
     return YES;
 }
-
 
 @end

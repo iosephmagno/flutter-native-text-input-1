@@ -112,7 +112,7 @@ class _MoreUseCaseListingPageState extends State<MoreUseCaseListingPage> {
                   title: "Focusing or Unfocusing Text Input",
                   child: Column(
                     children: [
-                      MaterialButton(
+                      FlatButton(
                           color: Colors.blue,
                           colorBrightness: Brightness.dark,
                           child: const Text("Tap Me!"),
@@ -134,7 +134,7 @@ class _MoreUseCaseListingPageState extends State<MoreUseCaseListingPage> {
                   title: "Filling Text Programmatically",
                   child: Column(
                     children: [
-                      MaterialButton(
+                      FlatButton(
                         color: Colors.blue,
                         colorBrightness: Brightness.dark,
                         child: const Text("Tap Me!"),

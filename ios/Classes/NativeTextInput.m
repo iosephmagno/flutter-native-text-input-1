@@ -36,7 +36,7 @@
         _textView.returnKeyType = [self returnKeyTypeFromString:args[@"returnKeyType"]];
         _textView.textAlignment = [self textAlignmentFromString:args[@"textAlign"]];
         _textView.autocapitalizationType = [self textAutocapitalizationTypeFromString:args[@"textCapitalization"]];
-        //_textView.textContainer.lineBreakMode = NSLineBreakByCharWrapping;
+        _textView.textContainer.lineBreakMode = NSLineBreakByCharWrapping;
         
         if ([args[@"maxLines"] intValue] == 1) {
             _textView.textContainer.maximumNumberOfLines = 1;
@@ -82,7 +82,7 @@
             [_textView addGestureRecognizer:singleTap];
         }
 
-       _containerWidth = [args[@"width"] floatValue];
+        _containerWidth = [args[@"width"] floatValue];
         
         if ([_textView.text  isEqual: @""]) {
         _textView.scrollEnabled = false;
@@ -100,14 +100,8 @@
 - (void)onMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     if ([[call method] isEqualToString:@"getContentHeight"]) {
         CGSize boundSize = CGSizeMake(_textView.frame.size.width, MAXFLOAT);
-        if (_textView.frame.size.width > MAXFLOAT) {
-            printf("Calling........");
-            CGSize size = [_textView sizeThatFits: boundSize];
-            result([NSNumber numberWithFloat: size.height]);
-        } else{
-            CGSize size = [_textView sizeThatFits: boundSize];
-            result([NSNumber numberWithFloat: size.height / 2]);
-        }
+        CGSize size = [_textView sizeThatFits: boundSize];
+        result([NSNumber numberWithFloat: size.height]);
     } else if ([[call method] isEqualToString:@"getLineHeight"]) {
         result([NSNumber numberWithFloat: _textView.font.lineHeight]);
     } else if ([[call method] isEqualToString:@"unfocus"]) {
