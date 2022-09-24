@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Build
+import android.text.Editable
 import android.text.InputType
+import android.text.TextWatcher
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
@@ -29,7 +31,9 @@ internal class NativeTextInput(
     private val context: Context
     private val scaledDensity: Float
     private val editText: EditText
-
+    var startChanged = 0;
+    var beforeChanged: Int = 0;
+    var countChanged: Int = 0
     override fun getView(): View {
         return editText
     }
@@ -52,7 +56,8 @@ internal class NativeTextInput(
                 rgbMap.get("alpha") as Int,
                 rgbMap.get("red") as Int,
                 rgbMap.get("green") as Int,
-                rgbMap.get("blue") as Int)
+                rgbMap.get("blue") as Int
+            )
             editText.setTextColor(color)
         }
 
@@ -107,17 +112,19 @@ internal class NativeTextInput(
             0,
             minHeightPadding.toInt() / 2,
             0,
-            minHeightPadding.toInt() / 2)
+            minHeightPadding.toInt() / 2
+        )
 
         editText.hint = creationParams.get("placeholder") as String
-
+editText.m
         if (creationParams.get("placeholderFontColor") != null) {
             val rgbMap = creationParams.get("placeholderFontColor") as Map<String, Float>
             val color = Color.argb(
                 rgbMap.get("alpha") as Int,
                 rgbMap.get("red") as Int,
                 rgbMap.get("green") as Int,
-                rgbMap.get("blue") as Int)
+                rgbMap.get("blue") as Int
+            )
             editText.setHintTextColor(color)
         }
 
@@ -229,12 +236,11 @@ internal class NativeTextInput(
         editText.maxWidth = width.toInt()
 
         if (minLines > 1 || maxLines > 1) {
-            editText.inputType = editText.inputType or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            editText.inputType = editText.inputType or InputType.TYPE_CLASS_TEXT
             editText.setHorizontallyScrolling(false)
         }
-        editText.placeCursorToEnd()
         editText.setOnFocusChangeListener { v, hasFocus ->
-            Log.d(TAG, "hasFocus:" + hasFocus)
+            Log.d(TAG, "hasFocus:$hasFocus")
             if (hasFocus) {
                 channel.invokeMethod("inputStarted", null)
             } else {
@@ -242,19 +248,52 @@ internal class NativeTextInput(
             }
         }
 
-        editText.doOnTextChanged { text, start, before, count ->
-            Log.d(TAG, "doOnTextChanged:text:" + text.toString())
-            Log.d(TAG, "doOnTextChanged:lineCount:" + editText.lineCount);
+//        editText.doOnTextChanged { text, start, before, count ->
+//            Log.d(TAG, "doOnTextChanged:text:" + text.toString())
+//            Log.d(TAG, "doOnTextChanged:lineCount:" + editText.lineCount);
+//
+//            channel.invokeMethod("inputValueChanged", mapOf("text" to text.toString()))
+//
+//            startChanged = start;
+//            beforeChanged = before;
+//            countChanged = count;
+//            editText.placeCursorToEnd(startChanged+countChanged)
+//
+//            editText.removeTextChangedListener(this)
+//        }
 
-            channel.invokeMethod("inputValueChanged", mapOf("text" to text.toString()))
-            editText.placeCursorToEnd()
-        }
+        editText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(text: CharSequence, start: Int, before: Int, count: Int) {
+
+                Log.d(TAG, "doOnTextChanged:text :$text")
+                Log.d(TAG, "doOnTextChanged:lineCount:" + editText.lineCount)
+//                editText.removeTextChangedListener(null)
+//                startChanged = start
+//                beforeChanged = before
+//                countChanged = count
+//                editText.placeCursorToEnd(startChanged + countChanged)
+//                editText.removeTextChangedListener(this)
+//                channel.invokeMethod("inputValueChanged", mapOf("text" to text.toString()))
+
+            }
+
+            override fun afterTextChanged(s: Editable) {
+//                editText.removeTextChangedListener(null)
+//                editText.placeCursorToEnd(startChanged + countChanged)
+//                editText.placeCursorToEnd(editText.text.length)
+//                editText.removeTextChangedListener(this)
+            }
+        })
 
         channel.setMethodCallHandler(this)
     }
 
-    private fun EditText.placeCursorToEnd() {
-        this.setSelection(this.text.length)
+    private fun EditText.placeCursorToEnd(cursorToEnd: Int) {
+        this.setSelection(cursorToEnd)
     }
 
     private fun showKeyboard() {

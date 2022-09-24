@@ -140,18 +140,27 @@
 
   - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
       NSString *newString;
+      
       if([text hasPrefix:@"\n"]) {
           if ([text stringByReplacingOccurrencesOfString:@"\n" withString:@""].length>0) {
               newString = [text stringByReplacingOccurrencesOfString:@"\n" withString:@""];
-              NSString* combinedString = [textView.text stringByAppendingString: newString];
+              NSRange range = textView.selectedRange;
+              NSString * firstHalfString = [textView.text substringToIndex:range.location];
+              NSString * secondHalfString = [textView.text substringFromIndex: range.location];
+              textView.scrollEnabled = NO;
+              
+              NSString* combinedString = [NSString stringWithFormat: @"%@%@%@",
+                                          firstHalfString,
+                                          newString,
+                                          secondHalfString];
               newString = combinedString;
-              text =  newString;
 
-              textView.text = text;
-              _textChange = text;
+//              textView.text = text;
+              _textChange = newString;
               NSLog(@"Updated Text ::::::::%@",text);
           }
       }
+     
     if ((textView.returnKeyType != UIReturnKeyDefault ||
          textView.textContainer.maximumNumberOfLines == 1) && [text isEqualToString:@"\n"]) {
          [_channel invokeMethod:@"inputFinished"
