@@ -133,6 +133,12 @@
 
 - (void)onSetText:(FlutterMethodCall*)call result:(FlutterResult)result {
     _textView.text = call.arguments[@"text"];
+    if (call.arguments[@"cursorPos"]!= nil) {
+        int cursorPosition = [call.arguments[@"cursorPos"] intValue];
+        NSLog(@"NativeTextInput=>%d", cursorPosition);
+        _textView.selectedRange = NSMakeRange(cursorPosition, 0);
+    }
+    
     _textView.textColor = _delegate.fontColor;
     _textView.font = _delegate.font;
     

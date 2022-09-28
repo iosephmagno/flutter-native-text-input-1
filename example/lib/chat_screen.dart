@@ -66,7 +66,6 @@ class _ChatScreenState extends State<ChatScreen> {
                           const SizedBox(width: 9.0),
                           Expanded(
                             child: Padding(
-                              //assign padding to textfield 
                               padding: const EdgeInsets.only(left:0, right:8),
                               child: NativeTextInput(
                                 style: TextStyle(
@@ -88,7 +87,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     letterSpacing: '-15@17'.va,
                                     fontSize: 17,
                                     fontWeight: FontWeight.w400,
-                                    color: const Color(0xffA1A1A0),
+                                    color: Colors.black38,
                                   ),
                                 ),
                                 placeholder: 'Message',

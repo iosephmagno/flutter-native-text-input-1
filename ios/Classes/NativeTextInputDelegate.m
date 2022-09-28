@@ -9,6 +9,8 @@
     UIFontWeight _fontWeight;
     UIColor* _fontColor;
     NSString *_textChange;
+    
+    int _cursor;
     float _placeholderFontSize;
     NSString *_placeholderFontName;
     UIFontWeight _placeholderFontWeight;
@@ -18,14 +20,15 @@
 - (instancetype)initWithChannel:(FlutterMethodChannel*)channel arguments:(id _Nullable)args {
     self = [super init];
     _textChange = @"";
+    _cursor = 0;
     _fontSize = 16.0;
     _fontWeight = UIFontWeightRegular;
     _fontColor = UIColor.blackColor;
-
+    
     _placeholderFontSize = 16.0;
     _placeholderFontWeight = UIFontWeightRegular;
     _placeholderFontColor = UIColor.lightGrayColor;
-
+    
     if (args[@"fontSize"] && ![args[@"fontSize"] isKindOfClass:[NSNull class]]) {
         NSNumber* fontSize = args[@"fontSize"];
         _fontSize = [fontSize floatValue];
@@ -55,12 +58,12 @@
         NSDictionary* placeholderFontColor = args[@"placeholderFontColor"];
         _placeholderFontColor = [UIColor colorWithRed:[placeholderFontColor[@"red"] floatValue]/255.0 green:[placeholderFontColor[@"green"] floatValue]/255.0 blue:[placeholderFontColor[@"blue"] floatValue]/255.0 alpha:[placeholderFontColor[@"alpha"] floatValue]/255.0];
     }
-
+    
     if (self) {
         _channel = channel;
         _args = args;
     }
-
+    
     return self;
 }
 
@@ -111,7 +114,7 @@
     } else if ([fontWeight isEqualToString:@"FontWeight.w900"]) {
         return UIFontWeightBlack;
     }
-
+    
     return UIFontWeightRegular;
 }
 
@@ -119,7 +122,7 @@
     if (textView.textContainer.maximumNumberOfLines == 1) {
         textView.textContainer.lineBreakMode = NSLineBreakByCharWrapping;
     }
-
+    
     [_channel invokeMethod:@"inputStarted"
                  arguments:nil];
 }
@@ -129,7 +132,12 @@
     CGFloat numberOfLinesNeeded = ceil(textView.contentSize.height / textView.font.lineHeight);
     CGFloat numberOfLinesInTextView = ceil(textView.frame.size.height / textView.font.lineHeight);
     textView.scrollEnabled = numberOfLinesNeeded > numberOfLinesInTextView;
-    [_channel invokeMethod:@"inputValueChanged" arguments:@{ @"text": _textChange }];
+    NSLog(@"Current Cursor Position is:%d",_cursor);
+    [_channel invokeMethod:@"inputValueChanged"
+                 arguments:@{ @"text": _textChange, @"cursorPos": [NSNumber numberWithInt:_cursor]}];
+    //@"cursorPos":[NSNumber numberWithInteger:_cursor]
+    
+    
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
@@ -138,40 +146,46 @@
     }
 }
 
-  - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
-      NSString *newString;
-      
-      if([text hasPrefix:@"\n"]) {
-          if ([text stringByReplacingOccurrencesOfString:@"\n" withString:@""].length>0) {
-              newString = [text stringByReplacingOccurrencesOfString:@"\n" withString:@""];
-              NSRange range = textView.selectedRange;
-              NSString * firstHalfString = [textView.text substringToIndex:range.location];
-              NSString * secondHalfString = [textView.text substringFromIndex: range.location];
-              textView.scrollEnabled = NO;
-              
-              NSString* combinedString = [NSString stringWithFormat: @"%@%@%@",
-                                          firstHalfString,
-                                          newString,
-                                          secondHalfString];
-              newString = combinedString;
-
-//              textView.text = text;
-              _textChange = newString;
-              NSLog(@"Updated Text ::::::::%@",text);
-          }
-      }
-     
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    NSString *newString;
+    
+    if([text hasPrefix:@"\n"]) {
+        if ([text stringByReplacingOccurrencesOfString:@"\n" withString:@""].length>0) {
+            newString = [text stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+            NSRange range = textView.selectedRange;
+            NSString * firstHalfString = [textView.text substringToIndex:range.location];
+            NSString * secondHalfString = [textView.text substringFromIndex: range.location];
+            textView.scrollEnabled = NO;
+            int currentPosition = 0;
+            if ([secondHalfString isEqualToString:@""]) {
+                currentPosition =  ((int)range.location) + 1;
+            } else {
+                currentPosition =  ((int)range.location)  + (int) newString.length;
+            }
+            NSString* combinedString = [NSString stringWithFormat: @"%@%@%@",
+                                        firstHalfString,
+                                        newString,
+                                        secondHalfString];
+            newString = combinedString;
+            
+            //              textView.text = text;
+            _textChange = newString;
+            _cursor = currentPosition;
+            NSLog(@"Updated Text ::::::::%@",text);
+        }
+    }
+    
     if ((textView.returnKeyType != UIReturnKeyDefault ||
          textView.textContainer.maximumNumberOfLines == 1) && [text isEqualToString:@"\n"]) {
-         [_channel invokeMethod:@"inputFinished"
-                      arguments:@{ @"text": textView.text }];
-         return false;
-     }
-     return true;
- }
+        [_channel invokeMethod:@"inputFinished"
+                     arguments:@{ @"text": textView.text }];
+        return false;
+    }
+    return true;
+}
 
 - (void)singleTapRecognized:(UIGestureRecognizer *)gestureRecognizer {
-     [_channel invokeMethod:@"singleTapRecognized" arguments:@{}];
+    [_channel invokeMethod:@"singleTapRecognized" arguments:@{}];
 }
 
 #pragma mark - Gesture recognizer delegate

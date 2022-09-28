@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -297,12 +298,14 @@ class IosOptions {
 
 class _NativeTextInputState extends State<NativeTextInput> {
   final Completer<MethodChannel> _channel = Completer();
-
+  int _cursor = 0;
   TextEditingController? _controller;
+
   TextEditingController get _effectiveController =>
       widget.controller ?? (_controller ??= TextEditingController());
 
   FocusNode? _focusNode;
+
   FocusNode get _effectiveFocusNode =>
       widget.focusNode ?? (_focusNode ??= FocusNode());
 
@@ -338,9 +341,10 @@ class _NativeTextInputState extends State<NativeTextInput> {
 
   Future<void> _controllerListener() async {
     final MethodChannel channel = await _channel.future;
+    print("Send To Objective C =>:$_cursor");
     channel.invokeMethod(
       "setText",
-      {"text": widget.controller?.text ?? ''},
+      {"text": widget.controller?.text ?? '', "cursorPos": _cursor},
     );
     channel.invokeMethod("getContentHeight").then((value) {
       if (value != null && value != _contentHeight) {
@@ -564,8 +568,16 @@ class _NativeTextInputState extends State<NativeTextInput> {
     switch (call.method) {
       case "inputValueChanged":
         final String? text = call.arguments["text"];
+
         final int? lineIndex = call.arguments["currentLine"];
-        _inputValueChanged(text, lineIndex);
+
+        if (defaultTargetPlatform == TargetPlatform.iOS) {
+          final int cursorPos = call.arguments["cursorPos"];
+          _inputValueChanged(text, lineIndex, cursorPos);
+        } else {
+          _inputValueChanged(text, lineIndex, 0);
+        }
+
         return null;
 
       case "inputStarted":
@@ -623,13 +635,13 @@ class _NativeTextInputState extends State<NativeTextInput> {
     }
   }
 
-  void _inputValueChanged(String? text, int? lineIndex) async {
+  void _inputValueChanged(String? text, int? lineIndex, int currentPos) async {
     if (text == null) {
       return;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        _effectiveController.text = text;
+        // _effectiveController.text = text;
         break;
       case TargetPlatform.iOS:
         _effectiveController.text = text;
@@ -637,11 +649,17 @@ class _NativeTextInputState extends State<NativeTextInput> {
       default:
         break;
     }
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      setState(() {
+        _cursor = currentPos;
+      });
+    }
     if (widget.onChanged != null) widget.onChanged!(text);
 
     final channel = await _channel.future;
     final value = await channel.invokeMethod("getContentHeight");
     if (mounted && value != null && value != _contentHeight) {
+      print("_contentHeight::::::::::: $_contentHeight");
       setState(() {
         _contentHeight = value;
       });

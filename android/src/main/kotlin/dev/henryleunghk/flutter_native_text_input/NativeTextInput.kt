@@ -10,12 +10,16 @@ import android.text.TextWatcher
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
+import android.view.accessibility.AccessibilityEvent
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.Magnifier
 import androidx.annotation.NonNull
-import androidx.core.widget.doOnTextChanged
+import androidx.annotation.RequiresApi
+import com.google.android.material.textfield.TextInputEditText
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
@@ -30,10 +34,8 @@ internal class NativeTextInput(
 ) : PlatformView, MethodChannel.MethodCallHandler {
     private val context: Context
     private val scaledDensity: Float
-    private val editText: EditText
-    var startChanged = 0;
-    var beforeChanged: Int = 0;
-    var countChanged: Int = 0
+    private val editText: TextInputEditText
+
     override fun getView(): View {
         return editText
     }
@@ -44,26 +46,26 @@ internal class NativeTextInput(
         this.context = context
         scaledDensity = context.resources.displayMetrics.scaledDensity
 
-        editText = EditText(context)
+        editText = TextInputEditText(context)
         editText.setBackgroundResource(R.drawable.edit_text_background)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             editText.setTextCursorDrawable(R.drawable.edit_text_cursor)
         }
 
-        if (creationParams.get("fontColor") != null) {
-            val rgbMap = creationParams.get("fontColor") as Map<String, Float>
+        if (creationParams["fontColor"] != null) {
+            val rgbMap = creationParams["fontColor"] as Map<String, Float>
             val color = Color.argb(
-                rgbMap.get("alpha") as Int,
-                rgbMap.get("red") as Int,
-                rgbMap.get("green") as Int,
-                rgbMap.get("blue") as Int
+                rgbMap["alpha"] as Int,
+                rgbMap["red"] as Int,
+                rgbMap["green"] as Int,
+                rgbMap["blue"] as Int
             )
             editText.setTextColor(color)
         }
 
-        if (creationParams.get("fontSize") != null) {
-            val fontSize = creationParams.get("fontSize") as Double
-            Log.d(TAG, "fontSize:" + fontSize)
+        if (creationParams["fontSize"] != null) {
+            val fontSize = creationParams["fontSize"] as Double
+            Log.d(TAG, "fontSize:$fontSize")
             editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize.toFloat())
             editText.textSize = fontSize.toFloat()
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -71,172 +73,187 @@ internal class NativeTextInput(
 //            }
         }
 
-        if (creationParams.get("fontWeight") != null &&
-            android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P
-        ) {
-            val fontWeight = creationParams.get("fontWeight") as String
-            if (fontWeight == "FontWeight.w100") {
-                editText.typeface = Typeface.create(editText.typeface, 100, false)
-            } else if (fontWeight == "FontWeight.w200") {
-                editText.typeface = Typeface.create(editText.typeface, 200, false)
-            } else if (fontWeight == "FontWeight.w300") {
-                editText.typeface = Typeface.create(editText.typeface, 300, false)
-            } else if (fontWeight == "FontWeight.w400") {
-                editText.typeface = Typeface.create(editText.typeface, 400, false)
-            } else if (fontWeight == "FontWeight.w500") {
-                editText.typeface = Typeface.create(editText.typeface, 500, false)
-            } else if (fontWeight == "FontWeight.w600") {
-                editText.typeface = Typeface.create(editText.typeface, 600, false)
-            } else if (fontWeight == "FontWeight.w700") {
-                editText.typeface = Typeface.create(editText.typeface, 700, false)
-            } else if (fontWeight == "FontWeight.w800") {
-                editText.typeface = Typeface.create(editText.typeface, 800, false)
-            } else if (fontWeight == "FontWeight.w900") {
-                editText.typeface = Typeface.create(editText.typeface, 900, false)
+        if (creationParams["fontWeight"] != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            when (creationParams["fontWeight"] as String) {
+                "FontWeight.w100" -> {
+                    editText.typeface = Typeface.create(editText.typeface, 100, false)
+                }
+                "FontWeight.w200" -> {
+                    editText.typeface = Typeface.create(editText.typeface, 200, false)
+                }
+                "FontWeight.w300" -> {
+                    editText.typeface = Typeface.create(editText.typeface, 300, false)
+                }
+                "FontWeight.w400" -> {
+                    editText.typeface = Typeface.create(editText.typeface, 400, false)
+                }
+                "FontWeight.w500" -> {
+                    editText.typeface = Typeface.create(editText.typeface, 500, false)
+                }
+                "FontWeight.w600" -> {
+                    editText.typeface = Typeface.create(editText.typeface, 600, false)
+                }
+                "FontWeight.w700" -> {
+                    editText.typeface = Typeface.create(editText.typeface, 700, false)
+                }
+                "FontWeight.w800" -> {
+                    editText.typeface = Typeface.create(editText.typeface, 800, false)
+                }
+                "FontWeight.w900" -> {
+                    editText.typeface = Typeface.create(editText.typeface, 900, false)
+                }
             }
         }
 
-        val minLines = creationParams.get("minLines") as Int
+        val minLines = creationParams["minLines"] as Int
         editText.minLines = minLines
         editText.setLines(minLines)
 
-        val maxLines = creationParams.get("maxLines") as Int
+        val maxLines = creationParams["maxLines"] as Int
         if (maxLines > minLines) {
             editText.maxLines = maxLines
         } else {
             editText.maxLines = minLines
         }
 
-        val minHeightPadding = creationParams.get("minHeightPadding") as Double
+        val minHeightPadding = creationParams["minHeightPadding"] as Double
         editText.setPadding(
-            0,
-            minHeightPadding.toInt() / 2,
-            0,
-            minHeightPadding.toInt() / 2
+            0, minHeightPadding.toInt() / 2, 0, minHeightPadding.toInt() / 2
         )
 
-        editText.hint = creationParams.get("placeholder") as String
-editText.m
-        if (creationParams.get("placeholderFontColor") != null) {
-            val rgbMap = creationParams.get("placeholderFontColor") as Map<String, Float>
+        editText.hint = creationParams["placeholder"] as String
+
+        if (creationParams["placeholderFontColor"] != null) {
+            val rgbMap = creationParams["placeholderFontColor"] as Map<String, Float>
             val color = Color.argb(
-                rgbMap.get("alpha") as Int,
-                rgbMap.get("red") as Int,
-                rgbMap.get("green") as Int,
-                rgbMap.get("blue") as Int
+                rgbMap["alpha"] as Int,
+                rgbMap["red"] as Int,
+                rgbMap["green"] as Int,
+                rgbMap["blue"] as Int
             )
             editText.setHintTextColor(color)
         }
 
-        if (creationParams.get("returnKeyType") != null) {
-            val returnKeyType = creationParams.get("returnKeyType") as String
-            if (returnKeyType == "ReturnKeyType.go") {
-                editText.imeOptions = EditorInfo.IME_ACTION_GO
-            } else if (returnKeyType == "ReturnKeyType.next") {
-                editText.imeOptions = EditorInfo.IME_ACTION_NEXT
-            } else if (returnKeyType == "ReturnKeyType.search") {
-                editText.imeOptions = EditorInfo.IME_ACTION_SEARCH
-            } else if (returnKeyType == "ReturnKeyType.send") {
-                editText.imeOptions = EditorInfo.IME_ACTION_SEND
-            } else if (returnKeyType == "ReturnKeyType.done") {
-                editText.imeOptions = EditorInfo.IME_ACTION_DONE
+        if (creationParams["returnKeyType"] != null) {
+            when (creationParams["returnKeyType"] as String) {
+                "ReturnKeyType.go" -> {
+                    editText.imeOptions = EditorInfo.IME_ACTION_GO
+                }
+                "ReturnKeyType.next" -> {
+                    editText.imeOptions = EditorInfo.IME_ACTION_NEXT
+                }
+                "ReturnKeyType.search" -> {
+                    editText.imeOptions = EditorInfo.IME_ACTION_SEARCH
+                }
+                "ReturnKeyType.send" -> {
+                    editText.imeOptions = EditorInfo.IME_ACTION_SEND
+                }
+                "ReturnKeyType.done" -> {
+                    editText.imeOptions = EditorInfo.IME_ACTION_DONE
+                }
             }
         }
 
-        if (creationParams.get("text") != null) {
-            val text = creationParams.get("text") as String
+        if (creationParams["text"] != null) {
+            val text = creationParams["text"] as String
             editText.setText(text)
         }
 
-        if (creationParams.get("textAlign") != null) {
-            val textAlign = creationParams.get("textAlign") as String
-            if (textAlign == "TextAlign.left") {
-                editText.gravity = Gravity.LEFT
-            } else if (textAlign == "TextAlign.right") {
-                editText.gravity = Gravity.RIGHT
-            } else if (textAlign == "TextAlign.center") {
-                editText.gravity = Gravity.CENTER
-            } else if (textAlign == "TextAlign.justify") {
-                editText.gravity = Gravity.FILL
-            } else if (textAlign == "TextAlign.start") {
-                editText.gravity = Gravity.START
-            } else if (textAlign == "TextAlign.end") {
-                editText.gravity = Gravity.END
+        if (creationParams["textAlign"] != null) {
+            when (creationParams["textAlign"] as String) {
+                "TextAlign.left" -> {
+                    editText.gravity = Gravity.LEFT
+                }
+                "TextAlign.right" -> {
+                    editText.gravity = Gravity.RIGHT
+                }
+                "TextAlign.center" -> {
+                    editText.gravity = Gravity.CENTER
+                }
+                "TextAlign.justify" -> {
+                    editText.gravity = Gravity.FILL
+                }
+                "TextAlign.start" -> {
+                    editText.gravity = Gravity.START
+                }
+                "TextAlign.end" -> {
+                    editText.gravity = Gravity.END
+                }
             }
         }
 
         if (creationParams.get("textCapitalization") != null) {
-            val textCapitalization = creationParams.get("textCapitalization") as String
-            if (textCapitalization == "TextCapitalization.none") {
-                editText.inputType = InputType.TYPE_CLASS_TEXT
-            } else if (textCapitalization == "TextCapitalization.characters") {
-                editText.inputType =
-                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
-            } else if (textCapitalization == "TextCapitalization.sentences") {
-                editText.inputType =
-                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-            } else if (textCapitalization == "TextCapitalization.words") {
-                editText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
+            when (creationParams["textCapitalization"] as String) {
+                "TextCapitalization.none" -> {
+                    editText.inputType = InputType.TYPE_CLASS_TEXT
+                }
+                "TextCapitalization.characters" -> {
+                    editText.inputType =
+                        InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+                }
+                "TextCapitalization.sentences" -> {
+                    editText.inputType =
+                        InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+                }
+                "TextCapitalization.words" -> {
+                    editText.inputType =
+                        InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
+                }
             }
         }
 
-        if (creationParams.get("keyboardType") != null) {
-            val keyboardType = creationParams.get("keyboardType") as String
-            if (keyboardType == "KeyboardType.numbersAndPunctuation" ||
-                keyboardType == "KeyboardType.numberPad" ||
-                keyboardType == "KeyboardType.asciiCapableNumberPad"
-            ) {
-                editText.inputType = InputType.TYPE_CLASS_NUMBER
-            } else if (keyboardType == "KeyboardType.phonePad") {
-                editText.inputType = InputType.TYPE_CLASS_PHONE
-            } else if (keyboardType == "KeyboardType.decimalPad") {
-                editText.inputType =
-                    InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
-            } else if (keyboardType == "KeyboardType.url" ||
-                keyboardType == "KeyboardType.webSearch"
-            ) {
-                editText.inputType = editText.inputType or InputType.TYPE_TEXT_VARIATION_URI
-            } else if (keyboardType == "KeyboardType.emailAddress") {
-                editText.inputType =
-                    editText.inputType or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+        if (creationParams["keyboardType"] != null) {
+            when (creationParams["keyboardType"] as String) {
+                "KeyboardType.numbersAndPunctuation", "KeyboardType.numberPad", "KeyboardType.asciiCapableNumberPad" -> {
+                    editText.inputType = InputType.TYPE_CLASS_NUMBER
+                }
+                "KeyboardType.phonePad" -> {
+                    editText.inputType = InputType.TYPE_CLASS_PHONE
+                }
+                "KeyboardType.decimalPad" -> {
+                    editText.inputType =
+                        InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+                }
+                "KeyboardType.url", "KeyboardType.webSearch" -> {
+                    editText.inputType = editText.inputType or InputType.TYPE_TEXT_VARIATION_URI
+                }
+                "KeyboardType.emailAddress" -> {
+                    editText.inputType =
+                        editText.inputType or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+                }
             }
-        } else if (creationParams.get("textContentType") != null) {
-            val textContentType = creationParams.get("textContentType") as String
-            if (textContentType == "TextContentType.username" ||
-                textContentType == "TextContentType.givenName" ||
-                textContentType == "TextContentType.middleName" ||
-                textContentType == "TextContentType.familyName" ||
-                textContentType == "TextContentType.nickname"
-            ) {
-                editText.inputType = editText.inputType or InputType.TYPE_TEXT_VARIATION_PERSON_NAME
-            } else if (textContentType == "TextContentType.password" ||
-                textContentType == "TextContentType.newPassword"
-            ) {
-                editText.inputType = editText.inputType or InputType.TYPE_TEXT_VARIATION_PASSWORD
-            } else if (textContentType == "TextContentType.fullStreetAddress" ||
-                textContentType == "TextContentType.streetAddressLine1" ||
-                textContentType == "TextContentType.streetAddressLine2" ||
-                textContentType == "TextContentType.addressCity" ||
-                textContentType == "TextContentType.addressState" ||
-                textContentType == "TextContentType.addressCityAndState"
-            ) {
-                editText.inputType =
-                    editText.inputType or InputType.TYPE_TEXT_VARIATION_POSTAL_ADDRESS
-            } else if (textContentType == "TextContentType.telephoneNumber") {
-                editText.inputType = InputType.TYPE_CLASS_PHONE
-            } else if (textContentType == "TextContentType.emailAddress") {
-                editText.inputType =
-                    editText.inputType or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
-            } else if (textContentType == "TextContentType.url") {
-                editText.inputType = editText.inputType or InputType.TYPE_TEXT_VARIATION_URI
+        } else if (creationParams["textContentType"] != null) {
+            when (creationParams["textContentType"] as String) {
+                "TextContentType.username", "TextContentType.givenName", "TextContentType.middleName", "TextContentType.familyName", "TextContentType.nickname" -> {
+                    editText.inputType =
+                        editText.inputType or InputType.TYPE_TEXT_VARIATION_PERSON_NAME
+                }
+                "TextContentType.password", "TextContentType.newPassword" -> {
+                    editText.inputType =
+                        editText.inputType or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                }
+                "TextContentType.fullStreetAddress", "TextContentType.streetAddressLine1", "TextContentType.streetAddressLine2", "TextContentType.addressCity", "TextContentType.addressState", "TextContentType.addressCityAndState" -> {
+                    editText.inputType =
+                        editText.inputType or InputType.TYPE_TEXT_VARIATION_POSTAL_ADDRESS
+                }
+                "TextContentType.telephoneNumber" -> {
+                    editText.inputType = InputType.TYPE_CLASS_PHONE
+                }
+                "TextContentType.emailAddress" -> {
+                    editText.inputType =
+                        editText.inputType or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+                }
+                "TextContentType.url" -> {
+                    editText.inputType = editText.inputType or InputType.TYPE_TEXT_VARIATION_URI
+                }
             }
         }
 
-        val width = creationParams.get("width") as Double
+        val width = creationParams["width"] as Double
         editText.maxWidth = width.toInt()
 
         if (minLines > 1 || maxLines > 1) {
-            editText.inputType = editText.inputType or InputType.TYPE_CLASS_TEXT
+            editText.inputType = editText.inputType or InputType.TYPE_TEXT_FLAG_MULTI_LINE
             editText.setHorizontallyScrolling(false)
         }
         editText.setOnFocusChangeListener { v, hasFocus ->
@@ -248,52 +265,31 @@ editText.m
             }
         }
 
-//        editText.doOnTextChanged { text, start, before, count ->
-//            Log.d(TAG, "doOnTextChanged:text:" + text.toString())
-//            Log.d(TAG, "doOnTextChanged:lineCount:" + editText.lineCount);
-//
-//            channel.invokeMethod("inputValueChanged", mapOf("text" to text.toString()))
-//
-//            startChanged = start;
-//            beforeChanged = before;
-//            countChanged = count;
-//            editText.placeCursorToEnd(startChanged+countChanged)
-//
-//            editText.removeTextChangedListener(this)
-//        }
-
         editText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
+            override fun beforeTextChanged(
+                text: CharSequence?, start: Int, before: Int, count: Int
+            ) {
 
             }
 
-            override fun onTextChanged(text: CharSequence, start: Int, before: Int, count: Int) {
+            override fun onTextChanged(text: CharSequence?, start: Int, count: Int, after: Int) {
+                Log.d(TAG, "doOnTextChanged:text:" + text.toString())
+                Log.d(TAG, "doOnTextChanged:lineCount:" + editText.lineCount);
+                Log.e(TAG, "onTextChanged: $start:$count")
 
-                Log.d(TAG, "doOnTextChanged:text :$text")
-                Log.d(TAG, "doOnTextChanged:lineCount:" + editText.lineCount)
-//                editText.removeTextChangedListener(null)
-//                startChanged = start
-//                beforeChanged = before
-//                countChanged = count
-//                editText.placeCursorToEnd(startChanged + countChanged)
-//                editText.removeTextChangedListener(this)
-//                channel.invokeMethod("inputValueChanged", mapOf("text" to text.toString()))
-
+                channel.invokeMethod("inputValueChanged", mapOf("text" to text.toString()))
             }
 
-            override fun afterTextChanged(s: Editable) {
-//                editText.removeTextChangedListener(null)
-//                editText.placeCursorToEnd(startChanged + countChanged)
-//                editText.placeCursorToEnd(editText.text.length)
-//                editText.removeTextChangedListener(this)
+            override fun afterTextChanged(e: Editable?) {
+
             }
         })
 
         channel.setMethodCallHandler(this)
     }
 
-    private fun EditText.placeCursorToEnd(cursorToEnd: Int) {
-        this.setSelection(cursorToEnd)
+    private fun EditText.placeCursorToEnd() {
+        this.setSelection(this.text.length)
     }
 
     private fun showKeyboard() {
@@ -309,23 +305,29 @@ editText.m
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
-        if (call.method == "getContentHeight") {
-            var contentHeight = editText.lineHeight / scaledDensity * editText.lineCount
-            Log.d(TAG, "getContentHeight:" + contentHeight)
-            result.success(contentHeight.toDouble())
-        } else if (call.method == "getLineHeight") {
-            val lineHeight = editText.textSize / scaledDensity
-            Log.d(TAG, "getLineHeight:" + lineHeight)
-            result.success(lineHeight.toDouble())
-        } else if (call.method == "focus") {
-            editText.requestFocus()
-            showKeyboard()
-        } else if (call.method == "unfocus") {
-            editText.clearFocus()
-            hideKeyboard()
-        } else if (call.method == "setText") {
-            val text = call.argument<String>("text")
-            editText.setText(text)
+        when (call.method) {
+            "getContentHeight" -> {
+                var contentHeight = editText.lineHeight / scaledDensity * editText.lineCount
+                Log.d(TAG, "getContentHeight:$contentHeight")
+                result.success(contentHeight.toDouble())
+            }
+            "getLineHeight" -> {
+                val lineHeight = editText.textSize / scaledDensity
+                Log.d(TAG, "getLineHeight:$lineHeight")
+                result.success(lineHeight.toDouble())
+            }
+            "focus" -> {
+                editText.requestFocus()
+                showKeyboard()
+            }
+            "unfocus" -> {
+                editText.clearFocus()
+                hideKeyboard()
+            }
+            "setText" -> {
+                val text = call.argument<String>("text")
+                editText.setText(text)
+            }
         }
     }
 }
