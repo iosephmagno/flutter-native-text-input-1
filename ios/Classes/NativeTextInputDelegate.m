@@ -167,7 +167,6 @@
                                         newString,
                                         secondHalfString];
             newString = combinedString;
-            
             //              textView.text = text;
             _textChange = newString;
             _cursor = currentPosition;

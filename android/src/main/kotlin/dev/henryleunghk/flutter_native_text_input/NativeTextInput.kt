@@ -1,7 +1,9 @@
 package dev.henryleunghk.flutter_native_text_input
 
+import android.app.Activity
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.Typeface
 import android.os.Build
 import android.text.Editable
@@ -12,17 +14,17 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
-import android.view.accessibility.AccessibilityEvent
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Magnifier
 import androidx.annotation.NonNull
-import androidx.annotation.RequiresApi
 import com.google.android.material.textfield.TextInputEditText
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
+
 
 val TAG: String = "NativeTextInput"
 
@@ -31,6 +33,7 @@ internal class NativeTextInput(
     id: Int,
     creationParams: Map<String?, Any?>,
     channel: MethodChannel,
+//    activity: Activity,
 ) : PlatformView, MethodChannel.MethodCallHandler {
     private val context: Context
     private val scaledDensity: Float
@@ -48,6 +51,7 @@ internal class NativeTextInput(
 
         editText = TextInputEditText(context)
         editText.setBackgroundResource(R.drawable.edit_text_background)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             editText.setTextCursorDrawable(R.drawable.edit_text_cursor)
         }
@@ -309,7 +313,7 @@ internal class NativeTextInput(
             "getContentHeight" -> {
                 var contentHeight = editText.lineHeight / scaledDensity * editText.lineCount
                 Log.d(TAG, "getContentHeight:$contentHeight")
-                result.success(contentHeight.toDouble())
+                result.success(contentHeight.toDouble() + 10)
             }
             "getLineHeight" -> {
                 val lineHeight = editText.textSize / scaledDensity
