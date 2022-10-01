@@ -132,7 +132,7 @@
     CGFloat numberOfLinesNeeded = ceil(textView.contentSize.height / textView.font.lineHeight);
     CGFloat numberOfLinesInTextView = ceil(textView.frame.size.height / textView.font.lineHeight);
     textView.scrollEnabled = numberOfLinesNeeded > numberOfLinesInTextView;
-    NSLog(@"Current Cursor Position is:%d",_cursor);
+    
     [_channel invokeMethod:@"inputValueChanged"
                  arguments:@{ @"text": _textChange, @"cursorPos": [NSNumber numberWithInt:_cursor]}];
     //@"cursorPos":[NSNumber numberWithInteger:_cursor]
@@ -150,12 +150,13 @@
     if([text hasPrefix:@"\n"]) {
         if ([text stringByReplacingOccurrencesOfString:@"\n" withString:@""].length>0) {
             NSString *prefixToRemove = @"\n";
-            if ([text hasPrefix:prefixToRemove]){
-                newString = [text substringFromIndex:[prefixToRemove length]];
+            newString = [text copy];
+            if ([newString hasPrefix:prefixToRemove]){
+                newString = [newString substringFromIndex:[prefixToRemove length]];
             }
             
-            if ([text hasSuffix:prefixToRemove]){
-                newString = [text substringFromIndex:[prefixToRemove length] - 1];
+            if ([newString hasSuffix:prefixToRemove]){
+                newString = [newString substringToIndex:[newString length] - 1];
             }
 //            newString = [text stringByReplacingOccurrencesOfString:@"\n" withString:@""];
             NSRange range = textView.selectedRange;
@@ -163,11 +164,11 @@
             NSString * secondHalfString = [textView.text substringFromIndex: range.location];
             textView.scrollEnabled = NO;
             int currentPosition = 0;
-            if ([secondHalfString isEqualToString:@""]) {
-                currentPosition =  ((int)range.location) + 1;
-            } else {
+//            if ([secondHalfString isEqualToString:@""]) {
+//                currentPosition =  ((int)range.location) + 1;
+//            } else {
                 currentPosition =  ((int)range.location) + (int) newString.length;
-            }
+//            }
             NSString* combinedString = [NSString stringWithFormat: @"%@%@%@",
                                         firstHalfString,
                                         newString,
