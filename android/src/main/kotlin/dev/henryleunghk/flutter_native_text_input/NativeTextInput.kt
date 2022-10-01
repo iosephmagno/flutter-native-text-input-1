@@ -36,6 +36,7 @@ internal class NativeTextInput(context: Context, id: Int, creationParams: Map<St
         scaledDensity = context.resources.displayMetrics.scaledDensity
 
         editText = EditText(context)
+        //editText.setBackgroundResource(android.R.color.transparent)
         editText.setBackgroundResource(R.drawable.edit_text_background)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             editText.setTextCursorDrawable(R.drawable.edit_text_cursor)
