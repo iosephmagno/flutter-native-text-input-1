@@ -136,8 +136,6 @@
     [_channel invokeMethod:@"inputValueChanged"
                  arguments:@{ @"text": _textChange, @"cursorPos": [NSNumber numberWithInt:_cursor]}];
     //@"cursorPos":[NSNumber numberWithInteger:_cursor]
-    
-    
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
@@ -151,7 +149,15 @@
     
     if([text hasPrefix:@"\n"]) {
         if ([text stringByReplacingOccurrencesOfString:@"\n" withString:@""].length>0) {
-            newString = [text stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+            NSString *prefixToRemove = @"\n";
+            if ([text hasPrefix:prefixToRemove]){
+                newString = [text substringFromIndex:[prefixToRemove length]];
+            }
+            
+            if ([text hasSuffix:prefixToRemove]){
+                newString = [text substringFromIndex:[prefixToRemove length] - 1];
+            }
+//            newString = [text stringByReplacingOccurrencesOfString:@"\n" withString:@""];
             NSRange range = textView.selectedRange;
             NSString * firstHalfString = [textView.text substringToIndex:range.location];
             NSString * secondHalfString = [textView.text substringFromIndex: range.location];
@@ -160,7 +166,7 @@
             if ([secondHalfString isEqualToString:@""]) {
                 currentPosition =  ((int)range.location) + 1;
             } else {
-                currentPosition =  ((int)range.location)  + (int) newString.length;
+                currentPosition =  ((int)range.location) + (int) newString.length;
             }
             NSString* combinedString = [NSString stringWithFormat: @"%@%@%@",
                                         firstHalfString,
