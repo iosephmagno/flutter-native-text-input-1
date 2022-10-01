@@ -1,9 +1,7 @@
 package dev.henryleunghk.flutter_native_text_input
 
-import android.app.Activity
 import android.content.Context
 import android.graphics.Color
-import android.graphics.Rect
 import android.graphics.Typeface
 import android.os.Build
 import android.text.Editable
@@ -11,14 +9,14 @@ import android.text.InputType
 import android.text.TextWatcher
 import android.util.Log
 import android.util.TypedValue
+import android.view.GestureDetector
+import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
-import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
-import android.widget.Magnifier
 import androidx.annotation.NonNull
 import com.google.android.material.textfield.TextInputEditText
 import io.flutter.plugin.common.MethodCall
@@ -76,6 +74,19 @@ internal class NativeTextInput(
 //                editText.lineHeight = fontSize.toInt()
 //            }
         }
+
+        val gestureDetector = GestureDetector(context, object : SimpleOnGestureListener() {
+            override fun onSingleTapUp(e: MotionEvent?): Boolean {
+                if (!editText.hasFocus()) {
+                    editText.requestFocus()
+                }
+                channel.invokeMethod("singleTapRecognized", null)
+                Log.e(TAG, "onSingleTapUp: ")
+                return super.onSingleTapUp(e)
+            }
+        })
+
+        editText.setOnTouchListener { v, event -> gestureDetector.onTouchEvent(event) }
 
         if (creationParams["fontWeight"] != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             when (creationParams["fontWeight"] as String) {

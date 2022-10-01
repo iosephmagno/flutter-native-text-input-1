@@ -567,7 +567,7 @@ class _NativeTextInputState extends State<NativeTextInput> {
   Future<bool?> _onMethodCall(MethodCall call) async {
     switch (call.method) {
       case "inputValueChanged":
-        final String? text = call.arguments["text"];
+        final String? text= call.arguments["text"];
 
         final int? lineIndex = call.arguments["currentLine"];
 

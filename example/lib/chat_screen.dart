@@ -96,7 +96,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                   final isEmpty = val.trim().isEmpty;
                                   _messageNotifier.value = isEmpty;
                                 },
-                                onTap: () {},
+                                onTap: () {
+                                  print("onTap");
+                                },
                               ),
                             ),
                           ),
