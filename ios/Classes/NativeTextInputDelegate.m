@@ -8,7 +8,9 @@
     NSString *_fontName;
     UIFontWeight _fontWeight;
     UIColor* _fontColor;
+    NSString *_textChange;
     
+    int _cursor;
     float _placeholderFontSize;
     NSString *_placeholderFontName;
     UIFontWeight _placeholderFontWeight;
@@ -17,7 +19,8 @@
 
 - (instancetype)initWithChannel:(FlutterMethodChannel*)channel arguments:(id _Nullable)args {
     self = [super init];
-    
+    _textChange = @"";
+    _cursor = 0;
     _fontSize = 16.0;
     _fontWeight = UIFontWeightRegular;
     _fontColor = UIColor.blackColor;
@@ -111,7 +114,7 @@
     } else if ([fontWeight isEqualToString:@"FontWeight.w900"]) {
         return UIFontWeightBlack;
     }
-
+    
     return UIFontWeightRegular;
 }
 
@@ -129,7 +132,10 @@
     CGFloat numberOfLinesNeeded = ceil(textView.contentSize.height / textView.font.lineHeight);
     CGFloat numberOfLinesInTextView = ceil(textView.frame.size.height / textView.font.lineHeight);
     textView.scrollEnabled = numberOfLinesNeeded > numberOfLinesInTextView;
-    [_channel invokeMethod:@"inputValueChanged" arguments:@{ @"text": textView.text }];
+    
+    [_channel invokeMethod:@"inputValueChanged"
+                 arguments:@{ @"text": _textChange, @"cursorPos": [NSNumber numberWithInt:_cursor]}];
+    //@"cursorPos":[NSNumber numberWithInteger:_cursor]
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
@@ -138,20 +144,54 @@
     }
 }
 
- - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
-     if ((textView.returnKeyType != UIReturnKeyDefault ||
-         textView.textContainer.maximumNumberOfLines == 1) &&
-         [text isEqualToString:@"\n"]
-     ) {
-         [_channel invokeMethod:@"inputFinished"
-                      arguments:@{ @"text": textView.text }];
-         return false;
-     }
-     return true;
- }
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    NSString *newString;
+    
+    if([text hasPrefix:@"\n"]) {
+        if ([text stringByReplacingOccurrencesOfString:@"\n" withString:@""].length>0) {
+            NSString *prefixToRemove = @"\n";
+            newString = [text copy];
+            if ([newString hasPrefix:prefixToRemove]){
+                newString = [newString substringFromIndex:[prefixToRemove length]];
+            }
+            
+            if ([newString hasSuffix:prefixToRemove]){
+                newString = [newString substringToIndex:[newString length] - 1];
+            }
+//            newString = [text stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+            NSRange range = textView.selectedRange;
+            NSString * firstHalfString = [textView.text substringToIndex:range.location];
+            NSString * secondHalfString = [textView.text substringFromIndex: range.location];
+            textView.scrollEnabled = NO;
+            int currentPosition = 0;
+//            if ([secondHalfString isEqualToString:@""]) {
+//                currentPosition =  ((int)range.location) + 1;
+//            } else {
+                currentPosition =  ((int)range.location) + (int) newString.length;
+//            }
+            NSString* combinedString = [NSString stringWithFormat: @"%@%@%@",
+                                        firstHalfString,
+                                        newString,
+                                        secondHalfString];
+            newString = combinedString;
+            //              textView.text = text;
+            _textChange = newString;
+            _cursor = currentPosition;
+            NSLog(@"Updated Text ::::::::%@",text);
+        }
+    }
+    
+    if ((textView.returnKeyType != UIReturnKeyDefault ||
+         textView.textContainer.maximumNumberOfLines == 1) && [text isEqualToString:@"\n"]) {
+        [_channel invokeMethod:@"inputFinished"
+                     arguments:@{ @"text": textView.text }];
+        return false;
+    }
+    return true;
+}
 
 - (void)singleTapRecognized:(UIGestureRecognizer *)gestureRecognizer {
-     [_channel invokeMethod:@"singleTapRecognized" arguments:@{}];
+    [_channel invokeMethod:@"singleTapRecognized" arguments:@{}];
 }
 
 #pragma mark - Gesture recognizer delegate
@@ -159,5 +199,6 @@
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
     return YES;
 }
+
 
 @end

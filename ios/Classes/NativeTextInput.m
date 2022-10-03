@@ -36,7 +36,7 @@
         _textView.returnKeyType = [self returnKeyTypeFromString:args[@"returnKeyType"]];
         _textView.textAlignment = [self textAlignmentFromString:args[@"textAlign"]];
         _textView.autocapitalizationType = [self textAutocapitalizationTypeFromString:args[@"textCapitalization"]];
-        _textView.textContainer.lineBreakMode = NSLineBreakByCharWrapping;
+        //_textView.textContainer.lineBreakMode = NSLineBreakByCharWrapping;
         
         if ([args[@"maxLines"] intValue] == 1) {
             _textView.textContainer.maximumNumberOfLines = 1;
@@ -82,7 +82,7 @@
             [_textView addGestureRecognizer:singleTap];
         }
 
-        _containerWidth = [args[@"width"] floatValue];
+       _containerWidth = [args[@"width"] floatValue];
         
         if ([_textView.text  isEqual: @""]) {
         _textView.scrollEnabled = false;
@@ -100,8 +100,13 @@
 - (void)onMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     if ([[call method] isEqualToString:@"getContentHeight"]) {
         CGSize boundSize = CGSizeMake(_textView.frame.size.width, MAXFLOAT);
-        CGSize size = [_textView sizeThatFits: boundSize];
-        result([NSNumber numberWithFloat: size.height]);
+        if (_textView.frame.size.width < MAXFLOAT) {
+            CGSize size = [_textView sizeThatFits: boundSize];
+            result([NSNumber numberWithFloat: size.height]);
+        } else{
+            CGSize size = [_textView sizeThatFits: boundSize];
+            result([NSNumber numberWithFloat: size.height / 2]);
+        }
     } else if ([[call method] isEqualToString:@"getLineHeight"]) {
         result([NSNumber numberWithFloat: _textView.font.lineHeight]);
     } else if ([[call method] isEqualToString:@"unfocus"]) {
@@ -128,6 +133,12 @@
 
 - (void)onSetText:(FlutterMethodCall*)call result:(FlutterResult)result {
     _textView.text = call.arguments[@"text"];
+    if (call.arguments[@"cursorPos"]!= nil) {
+        int cursorPosition = [call.arguments[@"cursorPos"] intValue];
+        NSLog(@"NativeTextInput=>%d", cursorPosition);
+        _textView.selectedRange = NSMakeRange(cursorPosition, 0);
+    }
+    
     _textView.textColor = _delegate.fontColor;
     _textView.font = _delegate.font;
     
