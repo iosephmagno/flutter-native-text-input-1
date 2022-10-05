@@ -153,24 +153,24 @@
         if ([text stringByReplacingOccurrencesOfString:@"\n" withString:@""].length>0) {
             NSString *prefixToRemove = @"\n";
             newString = [text copy];
-            if ([newString hasPrefix:prefixToRemove]){
-                newString = [newString substringFromIndex:[prefixToRemove length]];
-            }
-            
-            if ([newString hasSuffix:prefixToRemove]){
-                newString = [newString substringToIndex:[newString length] - 1];
-            }
-//            newString = [text stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+//            if ([newString hasPrefix:prefixToRemove]){
+//                newString = [newString substringFromIndex:[prefixToRemove length]];
+//            }
+//
+//            if ([newString hasSuffix:prefixToRemove]){
+//                newString = [newString substringToIndex:[newString length] - 1];
+//            }
+            //            newString = [text stringByReplacingOccurrencesOfString:@"\n" withString:@""];
             NSRange range = textView.selectedRange;
             NSString * firstHalfString = [textView.text substringToIndex:range.location];
             NSString * secondHalfString = [textView.text substringFromIndex: range.location];
             textView.scrollEnabled = NO;
             int currentPosition = 0;
-//            if ([secondHalfString isEqualToString:@""]) {
-//                currentPosition =  ((int)range.location) + 1;
-//            } else {
-                currentPosition =  ((int)range.location) + (int) newString.length;
-//            }
+            //            if ([secondHalfString isEqualToString:@""]) {
+            //                currentPosition =  ((int)range.location) + 1;
+            //            } else {
+            currentPosition =  ((int)range.location) + (int) newString.length;
+            //            }
             NSString* combinedString = [NSString stringWithFormat: @"%@%@%@",
                                         firstHalfString,
                                         newString,
@@ -182,6 +182,13 @@
             NSLog(@"Updated Text ::::::::%@",text);
         }
     }
+//    else {
+//        if (![cuttedText isEqualToString:@""]) {
+//            NSString* part1 = [textView.text substringToIndex:range.location];
+//            NSString* part2 = [textView.text substringFromIndex:range.location + range.length];
+//            textView.text = [part1 stringByAppendingString:part2];
+//        }
+//    }
     
     if ((textView.returnKeyType != UIReturnKeyDefault ||
          textView.textContainer.maximumNumberOfLines == 1) && [text isEqualToString:@"\n"]) {

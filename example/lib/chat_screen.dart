@@ -78,7 +78,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 controller: _messageController,
                                 focusNode: _focusNode,
                                 minLines: 1,
-                                maxLines: 12,
+                                maxLines: 5,
                                 keyboardType: KeyboardType.defaultType,
                                 returnKeyType: ReturnKeyType.defaultAction,
                                 iosOptions: IosOptions(
