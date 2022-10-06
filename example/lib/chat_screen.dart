@@ -93,6 +93,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                 placeholder: 'Message',
                                 textCapitalization: TextCapitalization.sentences,
                                 onChanged: (val) {
+                                  //BUG: Added Log, val should return the word typed in the textfield but return nothing.                                 
+                                  debugPrint("onchanged value"+ val);
                                   final isEmpty = val.trim().isEmpty;
                                   _messageNotifier.value = isEmpty;
                                 },
