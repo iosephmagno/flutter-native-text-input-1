@@ -36,12 +36,13 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
+
                 children: [
                   Expanded(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(19),
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           width: 0.5,
                           color: const Color(0xffCFCFCF),
@@ -49,9 +50,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.max,
                         children: [
                           Container(
-                            margin: const EdgeInsets.fromLTRB(7, 0, 7, 0),
+                            margin: const EdgeInsets.fromLTRB(7, 6, 7, 6),
                             decoration: const BoxDecoration(
                               color: Color(0xFF007AEA),
                               shape: BoxShape.circle,
