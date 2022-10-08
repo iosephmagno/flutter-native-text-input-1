@@ -348,9 +348,9 @@ class _NativeTextInputState extends State<NativeTextInput> {
     );
     channel.invokeMethod("getContentHeight").then((value) {
       if (value != null && value != _contentHeight) {
-        setState(() {
-          _contentHeight = value;
-        });
+        // setState(() {
+        //   _contentHeight = value;
+        // });
       }
     });
   }
@@ -434,16 +434,16 @@ class _NativeTextInputState extends State<NativeTextInput> {
           ..setMethodCallHandler(_onMethodCall);
     channel.invokeMethod("getLineHeight").then((value) {
       if (value != null) {
-        setState(() {
-          _lineHeight = value;
-        });
+        // setState(() {
+        //   _lineHeight = value;
+        // });
       }
     });
     channel.invokeMethod("getContentHeight").then((value) {
       if (value != null) {
-        setState(() {
-          _contentHeight = value;
-        });
+        // setState(() {
+        //   _contentHeight = value;
+        // });
       }
     });
     _channel.complete(channel);
