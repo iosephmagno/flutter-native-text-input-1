@@ -134,7 +134,7 @@
     textView.scrollEnabled = numberOfLinesNeeded > numberOfLinesInTextView;
     
     [_channel invokeMethod:@"inputValueChanged"
-                 arguments:@{ @"text": _textChange, @"cursorPos": [NSNumber numberWithInt:_cursor]}];
+                 arguments:@{ @"text": _textChange,@"textChange": textView.text,  @"cursorPos": [NSNumber numberWithInt:_cursor]}];
     //@"cursorPos":[NSNumber numberWithInteger:_cursor]
 }
 

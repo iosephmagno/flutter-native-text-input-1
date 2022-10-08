@@ -132,9 +132,7 @@ internal class NativeTextInput(
         }
 
         val minHeightPadding = creationParams["minHeightPadding"] as Double
-        editText.setPadding(
-            0, minHeightPadding.toInt() / 2, 0, minHeightPadding.toInt() / 2
-        )
+        editText.setPadding(0, (minHeightPadding.toInt() / 2) , 0, (minHeightPadding.toInt() / 2))
 
         editText.hint = creationParams["placeholder"] as String
 
@@ -177,22 +175,22 @@ internal class NativeTextInput(
         if (creationParams["textAlign"] != null) {
             when (creationParams["textAlign"] as String) {
                 "TextAlign.left" -> {
-                    editText.gravity = Gravity.LEFT
+                    editText.gravity = Gravity.LEFT or Gravity.CENTER_VERTICAL
                 }
                 "TextAlign.right" -> {
-                    editText.gravity = Gravity.RIGHT
+                    editText.gravity = Gravity.RIGHT or Gravity.CENTER_VERTICAL
                 }
                 "TextAlign.center" -> {
                     editText.gravity = Gravity.CENTER
                 }
                 "TextAlign.justify" -> {
-                    editText.gravity = Gravity.FILL
+                    editText.gravity = Gravity.FILL or Gravity.CENTER_VERTICAL
                 }
                 "TextAlign.start" -> {
-                    editText.gravity = Gravity.START
+                    editText.gravity = Gravity.START or Gravity.CENTER_VERTICAL
                 }
                 "TextAlign.end" -> {
-                    editText.gravity = Gravity.END
+                    editText.gravity = Gravity.END or Gravity.CENTER_VERTICAL
                 }
             }
         }

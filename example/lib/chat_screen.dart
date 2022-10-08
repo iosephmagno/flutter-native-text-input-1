@@ -35,7 +35,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 minHeight: 36,
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: DecoratedBox(
@@ -48,16 +48,14 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       ),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Container(
-                            margin: const EdgeInsets.fromLTRB(7, 6, 7, 6),
+                            margin: const EdgeInsets.fromLTRB(7, 0, 7, 0),
                             decoration: const BoxDecoration(
                               color: Color(0xFF007AEA),
                               shape: BoxShape.circle,
                             ),
-                            width: 24,
-                            height: 24,
                             child: const Icon(
                               Icons.add,
                               color: Colors.white,
@@ -67,38 +65,41 @@ class _ChatScreenState extends State<ChatScreen> {
                           Expanded(
                             child: Padding(
                               padding: const EdgeInsets.only(left:0, right:8),
-                              child: NativeTextInput(
-                                style: TextStyle(
-                                  letterSpacing: '-15@17'.va,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black,
-                                ),
-                                minHeightPadding: 14,
-                                controller: _messageController,
-                                focusNode: _focusNode,
-                                minLines: 1,
-                                maxLines: 5,
-                                keyboardType: KeyboardType.defaultType,
-                                returnKeyType: ReturnKeyType.defaultAction,
-                                iosOptions: IosOptions(
-                                  keyboardAppearance: Brightness.light,
-                                  placeholderStyle: TextStyle(
+                              child: Center(
+                                child: NativeTextInput(
+                                  style: TextStyle(
                                     letterSpacing: '-15@17'.va,
-                                    fontSize: 17,
+                                    fontSize: 18,
                                     fontWeight: FontWeight.w400,
-                                    color: Colors.black38,
+                                    color: Colors.black,
                                   ),
+                                  minHeightPadding: 12,
+                                  controller: _messageController,
+                                  focusNode: _focusNode,
+                                  minLines: 1,
+                                  maxLines: 5,
+                                  keyboardType: KeyboardType.defaultType,
+                                  returnKeyType: ReturnKeyType.defaultAction,
+                                  iosOptions: IosOptions(
+                                    keyboardAppearance: Brightness.light,
+                                    placeholderStyle: TextStyle(
+                                      letterSpacing: '-15@17'.va,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.black38,
+                                    ),
+                                  ),
+                                  placeholder: 'Message',
+                                  textCapitalization: TextCapitalization.sentences,
+                                  onChanged: (val) {
+                                    final isEmpty = val.trim().isEmpty;
+                                    _messageNotifier.value = isEmpty;
+                                    print("onChanged===:: $val");
+                                  },
+                                  onTap: () {
+                                    print("onTap");
+                                  },
                                 ),
-                                placeholder: 'Message',
-                                textCapitalization: TextCapitalization.sentences,
-                                onChanged: (val) {
-                                  final isEmpty = val.trim().isEmpty;
-                                  _messageNotifier.value = isEmpty;
-                                },
-                                onTap: () {
-                                  print("onTap");
-                                },
                               ),
                             ),
                           ),
@@ -107,7 +108,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             builder: (ctx, value, child) {
                               if (value) {
                                 return const Padding(
-                                  padding: EdgeInsets.fromLTRB(7, 6, 7, 6),
+                                  padding: EdgeInsets.fromLTRB(7, 0, 7, 0),
                                   child: Icon(
                                     Icons.emoji_emotions_outlined,
                                     color: Color(0xFF9E9E9E),

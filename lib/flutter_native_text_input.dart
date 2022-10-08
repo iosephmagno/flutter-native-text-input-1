@@ -567,15 +567,16 @@ class _NativeTextInputState extends State<NativeTextInput> {
   Future<bool?> _onMethodCall(MethodCall call) async {
     switch (call.method) {
       case "inputValueChanged":
-        final String? text= call.arguments["text"];
+        final String? text = call.arguments["text"];
 
         final int? lineIndex = call.arguments["currentLine"];
 
         if (defaultTargetPlatform == TargetPlatform.iOS) {
+          final String? textChange = call.arguments["textChange"];
           final int cursorPos = call.arguments["cursorPos"];
-          _inputValueChanged(text, lineIndex, cursorPos);
+          _inputValueChanged(text, textChange, lineIndex, cursorPos);
         } else {
-          _inputValueChanged(text, lineIndex, 0);
+          _inputValueChanged(text, "", lineIndex, 0);
         }
 
         return null;
@@ -635,7 +636,8 @@ class _NativeTextInputState extends State<NativeTextInput> {
     }
   }
 
-  void _inputValueChanged(String? text, int? lineIndex, int currentPos) async {
+  void _inputValueChanged(
+      String? text, String? textChange, int? lineIndex, int currentPos) async {
     if (text == null) {
       return;
     }
@@ -653,9 +655,10 @@ class _NativeTextInputState extends State<NativeTextInput> {
       setState(() {
         _cursor = currentPos;
       });
+      if (widget.onChanged != null) widget.onChanged!(textChange!);
+    } else {
+      if (widget.onChanged != null) widget.onChanged!(text);
     }
-    if (widget.onChanged != null) widget.onChanged!(text);
-
     final channel = await _channel.future;
     final value = await channel.invokeMethod("getContentHeight");
     if (mounted && value != null && value != _contentHeight) {
