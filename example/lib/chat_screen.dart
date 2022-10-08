@@ -97,6 +97,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                     final isEmpty = val.trim().isEmpty;
                                     _messageNotifier.value = isEmpty;
                                     print("onChanged===:: $val");
+                                    //issue. _messageController.text should return same value of val. But it returns null.
+                                    debugPrint("_messageController" + _messageController.text);
                                   },
                                   onTap: () {
                                     print("onTap");
