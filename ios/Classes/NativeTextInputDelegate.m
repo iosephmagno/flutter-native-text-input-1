@@ -147,8 +147,8 @@
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
     NSString *newString;
     NSString * cuttedText = [textView.text substringWithRange:NSMakeRange(range.location, range.length)];
-//    NSLog(@"CUTTED TEXT %@",cuttedText);
-//    NSLog(@"shouldChangeTextInRange%@",_textChange);
+    NSLog(@"CUTTED TEXT %@",cuttedText);
+    NSLog(@"shouldChangeTextInRange%@",_textChange);
     if([text hasPrefix:@"\n"]) {
         if ([text stringByReplacingOccurrencesOfString:@"\n" withString:@""].length>0) {
             NSString *prefixToRemove = @"\n";

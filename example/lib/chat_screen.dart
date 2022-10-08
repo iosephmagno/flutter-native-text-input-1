@@ -96,10 +96,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                   onChanged: (val) {
                                     final isEmpty = val.trim().isEmpty;
                                     _messageNotifier.value = isEmpty;
-                                    // print("onChanged===:: $val");
+                                    print("onChanged===:: $val");
                                   },
                                   onTap: () {
-                                    // print("onTap");
+                                    print("onTap");
                                   },
                                 ),
                               ),
