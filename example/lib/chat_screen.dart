@@ -96,6 +96,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                   onChanged: (val) {
                                     final isEmpty = val.trim().isEmpty;
                                     _messageNotifier.value = isEmpty;
+                                    // message controller text is not fixed. Added this print.
+                                    print("message controller text"+_messageController.text);
+                                    //this is your print which is not good for testing _messageController fix
                                     print("onChanged=:: $val :: ${_messageController.text}");
                                   },
                                   onTap: () {
