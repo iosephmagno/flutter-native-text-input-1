@@ -132,7 +132,7 @@ internal class NativeTextInput(
         }
 
         val minHeightPadding = creationParams["minHeightPadding"] as Double
-        editText.setPadding(0, (minHeightPadding.toInt() / 2) , 0, (minHeightPadding.toInt() / 2))
+        editText.setPadding(0, (minHeightPadding.toInt() / 2), 0, (minHeightPadding.toInt() / 2))
 
         editText.hint = creationParams["placeholder"] as String
 
@@ -287,10 +287,13 @@ internal class NativeTextInput(
 
             override fun onTextChanged(text: CharSequence?, start: Int, count: Int, after: Int) {
                 Log.d(TAG, "doOnTextChanged:text:" + text.toString())
-                Log.d(TAG, "doOnTextChanged:lineCount:" + editText.lineCount);
-                Log.e(TAG, "onTextChanged: $start:$count")
+                Log.d(TAG, "doOnTextChanged:lineCount:" + editText.lineCount)
+                Log.e(TAG, "onTextChanged: $start:$after")
 
-                channel.invokeMethod("inputValueChanged", mapOf("text" to text.toString()))
+                channel.invokeMethod(
+                    "inputValueChanged",
+                    mapOf("text" to text.toString(), "cursorPos" to (start + after))
+                )
             }
 
             override fun afterTextChanged(e: Editable?) {
@@ -339,7 +342,9 @@ internal class NativeTextInput(
             }
             "setText" -> {
                 val text = call.argument<String>("text")
+                val cursorPos = call.argument<Int>("cursorPos")
                 editText.setText(text)
+                editText.setSelection(cursorPos?:0)
             }
         }
     }

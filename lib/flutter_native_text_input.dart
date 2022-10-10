@@ -576,7 +576,8 @@ class _NativeTextInputState extends State<NativeTextInput> {
           final int cursorPos = call.arguments["cursorPos"];
           _inputValueChanged(text, textChange, lineIndex, cursorPos);
         } else {
-          _inputValueChanged(text, "", lineIndex, 0);
+          final int cursorPos = call.arguments["cursorPos"];
+          _inputValueChanged(text, "", lineIndex, cursorPos);
         }
 
         return null;
@@ -643,7 +644,7 @@ class _NativeTextInputState extends State<NativeTextInput> {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        // _effectiveController.text = text;
+        _effectiveController.text = text;
         break;
       case TargetPlatform.iOS:
         _effectiveController.text = text;
@@ -652,11 +653,10 @@ class _NativeTextInputState extends State<NativeTextInput> {
         break;
     }
     if (defaultTargetPlatform == TargetPlatform.iOS) {
-      setState(() {
         _cursor = currentPos;
-      });
       if (widget.onChanged != null) widget.onChanged!(textChange!);
     } else {
+        _cursor = currentPos;
       if (widget.onChanged != null) widget.onChanged!(text);
     }
     final channel = await _channel.future;
